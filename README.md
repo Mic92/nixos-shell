@@ -37,22 +37,22 @@ $vm> poweroff
 or in the qemu console:
 
 ```console
-quit
+(qemu) quit
 ```
 
-Forward a port:
+Forward a port 2222 on the host to port 22 in the vm:
 
 ```console
 $ QEMU_NET_OPTS="hostfwd=tcp::2222-:22" nixos-shell
 ```
 
-More RAM:
+More RAM (in megabyte; defaults to 362MB):
 
 ```console
 $ QEMU_OPTS="-m 1024" nixos-shell
 ```
 
-More CPUs:
+More CPUs (defaults to 1):
 
 ```console
 $ QEMU_OPTS="--smp 2" nixos-shell
