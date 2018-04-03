@@ -40,7 +40,7 @@ or in the qemu console:
 (qemu) quit
 ```
 
-Forward a port 2222 on the host to port 22 in the vm:
+Forward port 2222 on the host to port 22 in the vm:
 
 ```console
 $ QEMU_NET_OPTS="hostfwd=tcp::2222-:22" nixos-shell
