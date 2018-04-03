@@ -1,5 +1,5 @@
 { lib, config, pkgs, ... }:
-# ./run-vm.sh -I nixos-config=./test-vm.nix
+
 let
   home = builtins.getEnv "HOME";
   user = builtins.getEnv "USER";
