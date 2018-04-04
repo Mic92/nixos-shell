@@ -44,6 +44,6 @@ fi
 
 nix-build '<nixpkgs/nixos>' -A vm -k \
   -I "nixos-config=${script_dir}/../share/nixos-shell/nixos-shell.nix" \
-  -o "${tempdir}/result" "$@" \
+  -o "${tempdir}/result" "$@" 2>&1 \
   | tee "$qemu_tty"
 "${tempdir}/result/bin/"run-*-vm
