@@ -16,7 +16,7 @@ if [[ $# -gt 0 ]]; then
 fi
 export QEMU_NIXOS_CONFIG=$(readlink -f "$nixos_config")
 
-export QEMU_OPTS="-nographic -serial mon:stdio ${QEMU_OPTS:-}"
+export QEMU_OPTS="-m 500M -nographic -serial mon:stdio ${QEMU_OPTS:-}"
 
 tempdir=$(mktemp -d)
 cleanup() {

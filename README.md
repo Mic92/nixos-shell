@@ -56,11 +56,11 @@ $ QEMU_NET_OPTS="hostfwd=tcp::2222-:22" nixos-shell
 
 ## RAM
 
-By default qemu will allow at most 362MB of RAM, this can be increase using
+By default qemu will allow at most 500MB of RAM, this can be increase using
 `QEMU_OPTS`.
 
 ```console
-$ QEMU_OPTS="-m 1024" nixos-shell
+$ QEMU_OPTS="-m 1024M" nixos-shell
 ```
 
 ## CPUs

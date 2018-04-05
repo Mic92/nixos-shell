@@ -4,7 +4,13 @@ NIXOS_SHELL ?= $(shell nix-build --no-out-link default.nix)/bin/nixos-shell
 all:
 
 test:
-	QEMU_NET_OPTS="hostfwd=tcp::2222-:22" QEMU_OPTS="--smp 2 -m 1024" $(NIXOS_SHELL) example-vm.nix
+	$(NIXOS_SHELL) example-vm.nix
+
+test-ressources:
+	QEMU_OPTS="--smp 2 -m 1024" $(NIXOS_SHELL) example-vm.nix
+
+test-forward:
+	QEMU_NET_OPTS="hostfwd=tcp::2222-:22" $(NIXOS_SHELL) example-vm.nix
 
 test-graphics:
 	QEMU_OPTS="-sdl" $(NIXOS_SHELL) example-vm.nix
