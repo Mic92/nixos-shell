@@ -2,7 +2,7 @@
 
 * Spawns a headless qemu virtual machines based on a `vm.nix` nixos module in the current working directory.
 * Mounts `$HOME` and the user's nix profile into the container
-* No ugly qemu SDL window, no serial console with incorrect terminal dimension.
+* Provides console access in the same terminal window
 
 Example `vm.nix`:
 
@@ -71,7 +71,9 @@ To increase the CPU count use the `--smp` qemu flag (defaults to 1):
 $ QEMU_OPTS="--smp 2" nixos-shell
 ```
 
-## Graphics
+## Graphics/Xserver
+
+To use graphical applications, add the `-sdl` flag (see example-vm-xserver.nix)
 
 ```console
 $ QEMU_OPTS="-sdl" nixos-shell
