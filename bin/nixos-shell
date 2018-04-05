@@ -16,27 +16,15 @@ if [[ $# -gt 0 ]]; then
 fi
 export QEMU_NIXOS_CONFIG=$(readlink -f "$nixos_config")
 
-qemu_tty=/dev/null
-tmux_pane_pid=
-if [[ -n "${TMUX:-}" ]] && command -v tmux >/dev/null 2>&1; then
-  tmux_session=($(tmux new-window -P -F '#{pane_tty} #{pane_pid}' "sleep 99999999999"))
-  qemu_tty=${tmux_session[0]}
-  tmux_pane_pid=${tmux_session[1]}
-  export QEMU_OPTS="-nographic -chardev tty,id=pts2,path=${qemu_tty} -device isa-serial,chardev=pts2 ${QEMU_OPTS:-}"
-else
-  export QEMU_OPTS="-nographic -serial mon:stdio ${QEMU_OPTS:-}"
-fi
+export QEMU_OPTS="-nographic -serial mon:stdio ${QEMU_OPTS:-}"
 
 tempdir=$(mktemp -d)
 cleanup() {
   rm -rf "$tempdir"
-  if [[ -n "$tmux_pane_pid" ]]; then
-    kill "$tmux_pane_pid"
-  fi
 }
 trap cleanup EXIT SIGINT SIGQUIT ERR
 
-export QEMU_OPTS="${QEMU_OPTS} -virtfs local,path=/home/,security_model=none,mount_tag=home"
+export QEMU_OPTS="${QEMU_OPTS} -virtfs local,path=/home/,security_model=none,mount_tag=home -device virtio-balloon"
 nix_profile="/nix/var/nix/profiles/per-user/${USER}/profile/"
 if [[ -d $nix_profile ]]; then
   export QEMU_OPTS="${QEMU_OPTS} -virtfs local,path=${nix_profile},security_model=none,mount_tag=nixprofile"
@@ -44,6 +32,5 @@ fi
 
 nix-build '<nixpkgs/nixos>' -A vm -k \
   -I "nixos-config=${script_dir}/../share/nixos-shell/nixos-shell.nix" \
-  -o "${tempdir}/result" "$@" 2>&1 \
-  | tee "$qemu_tty"
+  -o "${tempdir}/result" "$@"
 "${tempdir}/result/bin/"run-*-vm

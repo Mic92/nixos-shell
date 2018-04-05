@@ -3,8 +3,6 @@
 * Spawns a headless qemu virtual machines based on a `vm.nix` nixos module in the current working directory.
 * Mounts `$HOME` and the user's nix profile into the container
 * No ugly qemu SDL window, no serial console with incorrect terminal dimension.
-* If a tmux session is available, the console spawns in a new tmux pane, 
-  while the qemu interface starts current active pane
 
 Example `vm.nix`:
 
@@ -31,13 +29,15 @@ $ nixos-shell some-nix-module.nix
 
 ## Terminating the virtual machine
 
-To quit a virtual machine run the `poweroff` command in the virtual machine console
+Type `Ctrl-a x` to exit the virtual machine.
+
+You can also run the `poweroff` command in the virtual machine console:
 
 ```console
 $vm> poweroff
 ```
 
-Or type in the qemu console (if tmux mode is used).
+Or switch to qemu console with `Ctrl-a c` and type:
 
 ```console
 (qemu) quit
@@ -69,6 +69,12 @@ To increase the CPU count use the `--smp` qemu flag (defaults to 1):
 
 ```console
 $ QEMU_OPTS="--smp 2" nixos-shell
+```
+
+## Graphics
+
+```console
+$ QEMU_OPTS="-sdl" nixos-shell
 ```
 
 ## Firewall:
