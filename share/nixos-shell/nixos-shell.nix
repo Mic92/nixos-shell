@@ -8,6 +8,7 @@ let
   path = builtins.getEnv "QEMU_PATH";
   nixos_config = builtins.getEnv "QEMU_NIXOS_CONFIG";
   term = builtins.getEnv "TERM";
+  mounts = builtins.getEnv "_mounts";
 in {
   users.extraUsers.root = {
     # Allow the user to login as root without password.
@@ -28,6 +29,16 @@ in {
       mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
       mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=loose
     ''}
+
+    export targetRoot
+    ${pkgs.bash}/bin/bash <<\EOF
+    eval "${mounts}"
+    for mount_tag in "''${!mounts[*]}"; do
+      target=$targetRoot/"''${mounts[$mount_tag]}"
+      mkdir -p "$target"
+      mount -t 9p $mount_tag "$target" -o trans=virtio,version=9p2000.L,cache=loose
+    done
+    EOF
   '';
   environment.loginShellInit = ''
     # fix terminal size
