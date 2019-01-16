@@ -13,7 +13,7 @@ test-forward:
 	QEMU_NET_OPTS="hostfwd=tcp::2222-:22" $(NIXOS_SHELL) example-vm.nix
 
 test-graphics:
-	QEMU_OPTS="-sdl" $(NIXOS_SHELL) example-vm.nix
+	QEMU_OPTS="-display gtk,gl=on" $(NIXOS_SHELL) example-vm-xserver.nix
 
 install:
 	$(INSTALL) -D bin/nixos-shell $(DESTDIR)$(PREFIX)/bin/nixos-shell
