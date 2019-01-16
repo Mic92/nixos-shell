@@ -89,3 +89,11 @@ This can be overridden by:
  networking.firewall.enable = lib.mkForce true;
 }
 ```
+
+## Mount directories
+
+To mount anywhere inside the virtual machine, use the `--mount` switch:
+
+```console
+$ nixos-shell --mount ./host-dir /guest-dir
+```
