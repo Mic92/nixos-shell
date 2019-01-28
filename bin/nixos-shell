@@ -3,7 +3,6 @@
 set -euo pipefail
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export QEMU_KERNEL_PARAMS="console=ttyS0 ${QEMU_KERNEL_PARAMS:-}"
 export QEMU_PATH=${PATH:-}
 if [[ -z "${QEMU_SHELL:-}" ]] && [[ -n "$SHELL" ]]; then
   export QEMU_SHELL=$(basename "$SHELL")
@@ -23,9 +22,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-export QEMU_NIXOS_CONFIG=$(readlink -f "$nixos_config")
-
-export QEMU_OPTS="-m 500M -nographic -serial mon:stdio ${QEMU_OPTS:-}"
+export QEMU_NIXOS_CONFIG="$(readlink -f "$nixos_config")"
 
 tempdir=$(mktemp -d)
 cleanup() {

@@ -73,10 +73,13 @@ in {
       Log in as "root" with an empty password.
     '';
 
-    virtualisation.qemu = {
-      options = let
-        nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile";
-      in [ "-device virtio-balloon" ] ++
+    virtualisation = {
+      graphics = lib.mkVMOverride false;
+      memorySize = lib.mkVMOverride "500M";
+
+      qemu.options = let
+        nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
+      in
         lib.optional cfg.mounts.mountHome "-virtfs local,path=/home,security_model=none,mount_tag=home" ++
         lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
         lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}") cfg.mounts.extraMounts;
@@ -112,7 +115,6 @@ in {
       '';
     };
 
-    systemd.services."serial-getty@ttyS0".enable = true;
     networking.firewall.enable = lib.mkVMOverride false;
   };
 }
