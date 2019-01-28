@@ -16,7 +16,7 @@ test-graphics:
 	QEMU_OPTS="-display gtk,gl=on" $(NIXOS_SHELL) example-vm-xserver.nix
 
 test-mounts:
-	$(NIXOS_SHELL) example-vm.nix --mount $(shell realpath .) /mnt/nixos-shell
+	$(NIXOS_SHELL) example-vm-mounts.nix
 
 install:
 	$(INSTALL) -D bin/nixos-shell $(DESTDIR)$(PREFIX)/bin/nixos-shell
