@@ -4,9 +4,6 @@ set -euo pipefail
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export QEMU_PATH=${PATH:-}
-if [[ -z "${QEMU_SHELL:-}" ]] && [[ -n "$SHELL" ]]; then
-  export QEMU_SHELL=$(basename "$SHELL")
-fi
 
 nixos_config=vm.nix
 while [[ $# -gt 0 ]]; do

@@ -4,7 +4,6 @@ let
   home = builtins.getEnv "HOME";
   user = builtins.getEnv "USER";
   pwd = builtins.getEnv "PWD";
-  shell = builtins.getEnv "QEMU_SHELL";
   path = builtins.getEnv "QEMU_PATH";
   nixos_config = builtins.getEnv "QEMU_NIXOS_CONFIG";
   term = builtins.getEnv "TERM";
