@@ -12,22 +12,26 @@ in {
     extraPath = mkOption {
       type = types.str;
       default = "";
+      description = "<envar>$PATH</envar> to prepend.";
     };
 
     mounts = let
       cache = mkOption {
         type = types.enum ["none" "loose" "fscache" "mmap"];
         default = "loose"; # bad idea? Well, at least it is fast!1!!
+        description = "9p caching policy";
       };
     in {
       mountHome = mkOption {
         type = types.bool;
         default = true;
+        description = "Whether to mount <filename>/home</filename>.";
       };
 
       mountNixProfile = mkOption {
         type = types.bool;
         default = true;
+        description = "Whether to mount the user's nix profile.";
       };
 
       inherit cache;
@@ -41,6 +45,7 @@ in {
             options = {
               target = mkOption {
                 type = types.path;
+                description = "Target on the guest.";
               };
   
               inherit cache;
