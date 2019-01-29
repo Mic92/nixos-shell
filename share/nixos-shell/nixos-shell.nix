@@ -61,64 +61,72 @@ in {
 
   config = let
     user = builtins.getEnv "USER";
-  in {
-    users.extraUsers.root = {
+    shell = builtins.baseNameOf (builtins.getEnv "SHELL");
+  in lib.mkMerge [
+    (lib.mkIf (pkgs ? ${shell}) {
+      users.extraUsers.root.shell = lib.mkVMOverride pkgs.${shell};
+    })
+
+    (let
+      home = builtins.getEnv "HOME";
+    in lib.mkIf (home != "" && cfg.mounts.mountHome) {
+      users.extraUsers.root.home = lib.mkVMOverride home;
+    })
+
+    {
       # Allow the user to login as root without password.
-      initialHashedPassword = "";
-      shell = lib.mkVMOverride pkgs.${builtins.baseNameOf (builtins.getEnv "SHELL")} or config.users.defaultUserShell;
-      home = let
-        home = builtins.getEnv "HOME";
-      in lib.mkVMOverride (if home != "" && cfg.mounts.mountHome then home else "/root");
-    };
-    services.mingetty.helpLine = ''
-      Log in as "root" with an empty password.
-    '';
+      users.extraUsers.root.initialHashedPassword = "";
 
-    virtualisation = {
-      graphics = lib.mkVMOverride false;
-      memorySize = lib.mkVMOverride "500M";
-
-      qemu.options = let
-        nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
-      in
-        lib.optional cfg.mounts.mountHome "-virtfs local,path=/home,security_model=none,mount_tag=home" ++
-        lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
-        lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}") cfg.mounts.extraMounts;
-    };
-
-    # build-vm overrides our filesystem settings in nixos-config
-    boot.initrd.postMountCommands =
-      (lib.optionalString cfg.mounts.mountHome ''
-        mkdir -p $targetRoot/home/
-        mount -t 9p home $targetRoot/home/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache}
-      '') +
-      (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
-        mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
-        mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache}
-      '') +
-      builtins.concatStringsSep " " (lib.mapAttrsToList (target: mount: ''
-        mkdir -p $targetRoot/${target}
-        mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache}
-      '') cfg.mounts.extraMounts);
-
-    environment = {
-      systemPackages = with pkgs; [
-        xterm # for resize command
-      ];
-
-      loginShellInit = let
-        pwd = builtins.getEnv "PWD";
-        term = builtins.getEnv "TERM";
-      in ''
-        # fix terminal size
-        eval "$(resize)"
-
-        ${lib.optionalString (pwd != "") "cd '${pwd}' 2>/dev/null"}
-        ${lib.optionalString (term != "") "export TERM='${term}'"}
-        ${lib.optionalString (cfg.extraPath != "") "export PATH='${cfg.extraPath}:$PATH'"}
+      services.mingetty.helpLine = ''
+        Log in as "root" with an empty password.
       '';
-    };
 
-    networking.firewall.enable = lib.mkVMOverride false;
-  };
+      virtualisation = {
+        graphics = lib.mkVMOverride false;
+        memorySize = lib.mkVMOverride "500M";
+
+        qemu.options = let
+          nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
+        in
+          lib.optional cfg.mounts.mountHome "-virtfs local,path=/home,security_model=none,mount_tag=home" ++
+          lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
+          lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}") cfg.mounts.extraMounts;
+      };
+
+      # build-vm overrides our filesystem settings in nixos-config
+      boot.initrd.postMountCommands =
+        (lib.optionalString cfg.mounts.mountHome ''
+          mkdir -p $targetRoot/home/
+          mount -t 9p home $targetRoot/home/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache}
+        '') +
+        (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
+          mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
+          mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache}
+        '') +
+        builtins.concatStringsSep " " (lib.mapAttrsToList (target: mount: ''
+          mkdir -p $targetRoot/${target}
+          mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache}
+        '') cfg.mounts.extraMounts);
+
+      environment = {
+        systemPackages = with pkgs; [
+          xterm # for resize command
+        ];
+
+        loginShellInit = let
+          pwd = builtins.getEnv "PWD";
+          term = builtins.getEnv "TERM";
+        in ''
+          # fix terminal size
+          eval "$(resize)"
+
+          ${lib.optionalString (pwd != "") "cd '${pwd}' 2>/dev/null"}
+          ${lib.optionalString (term != "") "export TERM='${term}'"}
+          ${lib.optionalString (cfg.extraPath != "") "export PATH='${cfg.extraPath}:$PATH'"}
+        '';
+      };
+
+      networking.firewall.enable = lib.mkVMOverride false;
+    }
+  ];
 }
