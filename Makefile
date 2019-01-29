@@ -10,7 +10,7 @@ test-resources:
 	$(NIXOS_SHELL) examples/vm-resources.nix
 
 test-forward:
-	QEMU_NET_OPTS="hostfwd=tcp::2222-:22" $(NIXOS_SHELL) examples/vm-forward.nix
+	QEMU_NET_OPTS="hostfwd=tcp::2222-:22" $(NIXOS_SHELL) examples/vm.nix
 
 test-graphics:
 	$(NIXOS_SHELL) examples/vm-graphics.nix
