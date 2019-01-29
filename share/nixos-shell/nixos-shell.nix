@@ -78,6 +78,13 @@ in {
       users.extraUsers.root.home = lib.mkVMOverride home;
     })
 
+    # Allow passwordless ssh login with the user's key if it exists.
+    (let
+      pubkey = "${builtins.getEnv "HOME"}/.ssh/id_rsa.pub";
+    in lib.mkIf (builtins.pathExists pubkey) {
+      users.users.root.openssh.authorizedKeys.keyFiles = [ pubkey ];
+    })
+
     {
       # Allow the user to login as root without password.
       users.extraUsers.root.initialHashedPassword = "";
