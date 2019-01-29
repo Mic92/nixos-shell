@@ -33,27 +33,32 @@ in {
       inherit cache;
 
       extraMounts = mkOption {
-        type = types.attrsOf (types.submodule ({ config, ... }: {
-          options = {
-            target = mkOption {
-              type = types.path;
+        type = types.attrsOf (types.coercedTo
+          types.path (target: {
+            inherit target;
+          })
+          (types.submodule ({ config, ... }: {
+            options = {
+              target = mkOption {
+                type = types.path;
+              };
+  
+              inherit cache;
+  
+              tag = mkOption {
+                type = types.str;
+                internal = true;
+              };
             };
-
-            inherit cache;
-
-            tag = mkOption {
-              type = types.str;
-              internal = true;
-            };
-          };
-
-          config.tag = lib.mkVMOverride (
-            builtins.substring 0 31 ( # tags must be shorter than 32 bytes
-              "a" + # tags must not begin with a digit
-              builtins.hashString "md5" config._module.args.name
-            )
-          );
-        }));
+  
+            config.tag = lib.mkVMOverride (
+              builtins.substring 0 31 ( # tags must be shorter than 32 bytes
+                "a" + # tags must not begin with a digit
+                builtins.hashString "md5" config._module.args.name
+              )
+            );
+          }))
+        );
         default = {};
       };
     };

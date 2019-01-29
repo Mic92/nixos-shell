@@ -1,6 +1,10 @@
 { pkgs, ... }: {
-  nixos-shell.mounts.extraMounts."/mnt/nixos-shell" = {
-    target = ./..;
-    cache = "none";
+  nixos-shell.mounts.extraMounts = {
+    "/mnt/examples" = ./.;
+
+    "/mnt/nixos-shell" = {
+      target = ./..;
+      cache = "none";
+    };
   };
 }
