@@ -54,6 +54,10 @@ machine:
 $ QEMU_NET_OPTS="hostfwd=tcp::2222-:22" nixos-shell
 ```
 
+### SSH login
+
+Your keys are used to enable passwordless login for the root user.
+
 ## RAM
 
 By default qemu will allow at most 500MB of RAM, this can be increased using `virtualisation.memorySize`.
