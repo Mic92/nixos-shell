@@ -92,9 +92,10 @@ in {
 
     # Allow passwordless ssh login with the user's key if it exists.
     (let
-      pubkey = "${builtins.getEnv "HOME"}/.ssh/id_rsa.pub";
-    in lib.mkIf (builtins.pathExists pubkey) {
-      users.users.root.openssh.authorizedKeys.keyFiles = [ pubkey ];
+      keys = map (key: "${builtins.getEnv "HOME"}/.ssh/${key}")
+        ["id_rsa.pub" "id_ecdsa.pub" "id_ed25519.pub"];
+    in {
+      users.users.root.openssh.authorizedKeys.keyFiles = lib.filter builtins.pathExists keys;
     })
 
     {
