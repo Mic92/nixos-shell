@@ -4,7 +4,6 @@ let
   home = builtins.getEnv "HOME";
   user = builtins.getEnv "USER";
   pwd = builtins.getEnv "PWD";
-  path = builtins.getEnv "QEMU_PATH";
   nixos_config = builtins.getEnv "QEMU_NIXOS_CONFIG";
   term = builtins.getEnv "TERM";
   cfg = config.nixos-shell;
@@ -14,6 +13,11 @@ in {
   ];
 
   options.nixos-shell = with lib; {
+    extraPath = mkOption {
+      type = types.str;
+      default = "";
+    };
+
     mounts = let
       cache = mkOption {
         type = types.enum ["none" "loose" "fscache" "mmap"];
@@ -110,7 +114,7 @@ in {
 
         ${lib.optionalString (pwd != "") "cd '${pwd}' 2>/dev/null"}
         ${lib.optionalString (term != "") "export TERM='${term}'"}
-        ${lib.optionalString (path != "") "export PATH='${path}:$PATH'"}
+        ${lib.optionalString (cfg.extraPath != "") "export PATH='${cfg.extraPath}:$PATH'"}
       '';
     };
 
