@@ -3,6 +3,8 @@
 let
   nixos_config = builtins.getEnv "QEMU_NIXOS_CONFIG";
   cfg = config.nixos-shell;
+
+  mkVMDefault = lib.mkOverride 900;
 in {
   imports = lib.optional (nixos_config != "") nixos_config ++ [
     <nixpkgs/nixos/modules/virtualisation/qemu-vm.nix>
@@ -56,7 +58,7 @@ in {
               };
             };
   
-            config.tag = lib.mkVMOverride (
+            config.tag = lib.mkDefault (
               builtins.substring 0 31 ( # tags must be shorter than 32 bytes
                 "a" + # tags must not begin with a digit
                 builtins.hashString "md5" config._module.args.name
@@ -75,11 +77,11 @@ in {
   in lib.mkMerge [
     # Enable the module of the user's shell for some sensible defaults.
     (lib.mkIf (options.programs ? ${shell}.enable) {
-      programs.${shell}.enable = lib.mkVMOverride true;
+      programs.${shell}.enable = mkVMDefault true;
     })
 
     (lib.mkIf (pkgs ? ${shell}) {
-      users.extraUsers.root.shell = lib.mkVMOverride pkgs.${shell};
+      users.extraUsers.root.shell = mkVMDefault pkgs.${shell};
     })
 
     (let
@@ -104,8 +106,8 @@ in {
       '';
 
       virtualisation = {
-        graphics = lib.mkVMOverride false;
-        memorySize = lib.mkVMOverride "500M";
+        graphics = mkVMDefault false;
+        memorySize = mkVMDefault "500M";
 
         qemu.options = let
           nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
@@ -148,7 +150,7 @@ in {
         '';
       };
 
-      networking.firewall.enable = lib.mkVMOverride false;
+      networking.firewall.enable = mkVMDefault false;
     }
   ];
 }
