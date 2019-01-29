@@ -12,7 +12,7 @@ in {
 
   options.nixos-shell = with lib; {
     extraPath = mkOption {
-      type = types.str;
+      type = types.envVar;
       default = "";
       description = "<envar>$PATH</envar> to prepend.";
     };
@@ -147,7 +147,7 @@ in {
 
           ${lib.optionalString (pwd != "") "cd '${pwd}' 2>/dev/null"}
           ${lib.optionalString (term != "") "export TERM='${term}'"}
-          ${lib.optionalString (cfg.extraPath != "") "export PATH='${cfg.extraPath}:$PATH'"}
+          ${lib.optionalString (cfg.extraPath != "") "export PATH=\"${cfg.extraPath}:$PATH\""}
         '';
       };
 
