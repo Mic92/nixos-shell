@@ -1,11 +1,7 @@
 { lib, config, pkgs, ... }:
 
 let
-  home = builtins.getEnv "HOME";
-  user = builtins.getEnv "USER";
-  pwd = builtins.getEnv "PWD";
   nixos_config = builtins.getEnv "QEMU_NIXOS_CONFIG";
-  term = builtins.getEnv "TERM";
   cfg = config.nixos-shell;
 in {
   imports = lib.optional (nixos_config != "") nixos_config ++ [
@@ -63,7 +59,9 @@ in {
     };
   };
 
-  config = {
+  config = let
+    user = builtins.getEnv "USER";
+  in {
     users.extraUsers.root = {
       # Allow the user to login as root without password.
       initialHashedPassword = "";
@@ -108,7 +106,10 @@ in {
         xterm # for resize command
       ];
 
-      loginShellInit = ''
+      loginShellInit = let
+        pwd = builtins.getEnv "PWD";
+        term = builtins.getEnv "TERM";
+      in ''
         # fix terminal size
         eval "$(resize)"
 
