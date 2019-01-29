@@ -1,4 +1,4 @@
-{ lib, config, pkgs, ... }:
+{ lib, options, config, pkgs, ... }:
 
 let
   nixos_config = builtins.getEnv "QEMU_NIXOS_CONFIG";
@@ -63,6 +63,11 @@ in {
     user = builtins.getEnv "USER";
     shell = builtins.baseNameOf (builtins.getEnv "SHELL");
   in lib.mkMerge [
+    # Enable the module of the user's shell for some sensible defaults.
+    (lib.mkIf (options.programs ? ${shell}.enable) {
+      programs.${shell}.enable = lib.mkVMOverride true;
+    })
+
     (lib.mkIf (pkgs ? ${shell}) {
       users.extraUsers.root.shell = lib.mkVMOverride pkgs.${shell};
     })
