@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{
   nixos-shell.mounts.extraMounts = {
     "/mnt/examples" = ./.;
 
