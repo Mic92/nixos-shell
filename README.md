@@ -57,6 +57,8 @@ $ QEMU_NET_OPTS="hostfwd=tcp::2222-:22" nixos-shell
 ### SSH login
 
 Your keys are used to enable passwordless login for the root user.
+At the moment only `~/.ssh/id_rsa.pub`, `~/.ssh/id_ecdsa.pub` and `~/.ssh/id_ed25519.pub` are
+added automatically. Use `users.users.root.openssh.authorizedKeys.keyFiles` to add more.
 
 ## RAM
 
