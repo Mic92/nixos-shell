@@ -104,6 +104,9 @@ in {
 
       services.mingetty.helpLine = ''
         Log in as "root" with an empty password.
+        If you are connect via serial console:
+        Type Ctrl-a c to switch to the qemu console
+        and `quit` to stop the VM.
       '';
 
       virtualisation = {
