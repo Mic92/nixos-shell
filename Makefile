@@ -4,19 +4,19 @@ NIXOS_SHELL ?= $(shell nix-build --no-out-link default.nix)/bin/nixos-shell
 all:
 
 test:
-	$(NIXOS_SHELL) example-vm.nix
+	$(NIXOS_SHELL) examples/vm.nix
 
-test-ressources:
-	QEMU_OPTS="--smp 2 -m 1024" $(NIXOS_SHELL) example-vm.nix
+test-resources:
+	$(NIXOS_SHELL) examples/vm-resources.nix
 
 test-forward:
-	QEMU_NET_OPTS="hostfwd=tcp::2222-:22" $(NIXOS_SHELL) example-vm.nix
+	QEMU_NET_OPTS="hostfwd=tcp::2222-:22" $(NIXOS_SHELL) examples/vm.nix
 
 test-graphics:
-	QEMU_OPTS="-display gtk,gl=on" $(NIXOS_SHELL) example-vm-xserver.nix
+	$(NIXOS_SHELL) examples/vm-graphics.nix
 
 test-mounts:
-	$(NIXOS_SHELL) example-vm.nix --mount $(shell realpath .) /mnt/nixos-shell
+	$(NIXOS_SHELL) examples/vm-mounts.nix
 
 install:
 	$(INSTALL) -D bin/nixos-shell $(DESTDIR)$(PREFIX)/bin/nixos-shell

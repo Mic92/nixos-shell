@@ -3,23 +3,13 @@
 set -euo pipefail
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export QEMU_KERNEL_PARAMS="console=ttyS0 ${QEMU_KERNEL_PARAMS:-}"
-export QEMU_PATH=${PATH:-}
-if [[ -z "${QEMU_SHELL:-}" ]] && [[ -n "$SHELL" ]]; then
-  export QEMU_SHELL=$(basename "$SHELL")
-fi
 
 nixos_config=vm.nix
-declare -A mounts
 while [[ $# -gt 0 ]]; do
   case "$1" in
   --)
     shift
     break
-    ;;
-  --mount)
-    mounts["$2"]="$3"
-    shift; shift; shift
     ;;
   *)
     nixos_config="$1"
@@ -28,33 +18,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-export QEMU_NIXOS_CONFIG=$(readlink -f "$nixos_config")
-
-export QEMU_OPTS="-m 500M -nographic -serial mon:stdio ${QEMU_OPTS:-}"
+export QEMU_NIXOS_CONFIG="$(readlink -f "$nixos_config")"
 
 tempdir=$(mktemp -d)
 cleanup() {
   rm -rf "$tempdir"
 }
 trap cleanup EXIT SIGINT SIGQUIT ERR
-
-export QEMU_OPTS="${QEMU_OPTS} -virtfs local,path=/home/,security_model=none,mount_tag=home -device virtio-balloon"
-nix_profile="/nix/var/nix/profiles/per-user/${USER}/profile/"
-if [[ -d $nix_profile ]]; then
-  export QEMU_OPTS="${QEMU_OPTS} -virtfs local,path=${nix_profile},security_model=none,mount_tag=nixprofile"
-fi
-
-for mount in ${!mounts[*]}; do
-  mount_tag=$(echo "$mount" | md5sum)
-  mount_tag=${mount_tag:0:31} # tags must be shorter than 32 bytes
-  mount_tag=${mount_tag/[0-9]/a} # tags must not begin with a digit
-
-  export QEMU_OPTS="${QEMU_OPTS} -virtfs local,path=${mount},security_model=none,mount_tag=${mount_tag}"
-
-  mounts[$mount_tag]="${mounts[$mount]}"
-  unset mounts["$mount"]
-done
-export _mounts="$(declare -p mounts)"
 
 nix-build '<nixpkgs/nixos>' -A vm -k \
   -I "nixos-config=${script_dir}/../share/nixos-shell/nixos-shell.nix" \
