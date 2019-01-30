@@ -124,9 +124,7 @@ Available cache modes are documented in the [9p kernel module].
 
 ## More configuration
 
-You can prepend `$PATH` entries using `nixos-shell.extraPath`.
-
-Also have a look at the [virtualisation] options NixOS provides.
+Have a look at the [virtualisation] options NixOS provides.
 
 [virtualisation]: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/qemu-vm.nix
 [9p kernel module]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/Documentation/filesystems/9p.txt

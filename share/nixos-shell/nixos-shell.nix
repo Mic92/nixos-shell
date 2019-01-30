@@ -11,12 +11,6 @@ in {
   ];
 
   options.nixos-shell = with lib; {
-    extraPath = mkOption {
-      type = types.envVar;
-      default = "";
-      description = "<envar>$PATH</envar> to prepend.";
-    };
-
     mounts = let
       cache = mkOption {
         type = types.enum ["none" "loose" "fscache" "mmap"];
@@ -144,13 +138,14 @@ in {
         loginShellInit = let
           pwd = builtins.getEnv "PWD";
           term = builtins.getEnv "TERM";
+          path = builtins.getEnv "PATH";
         in ''
           # fix terminal size
           eval "$(resize)"
 
           ${lib.optionalString (pwd != "") "cd '${pwd}' 2>/dev/null"}
           ${lib.optionalString (term != "") "export TERM='${term}'"}
-          ${lib.optionalString (cfg.extraPath != "") "export PATH=\"${cfg.extraPath}:$PATH\""}
+          ${lib.optionalString (path != "") "export PATH=\"${path}:$PATH\""}
         '';
       };
 
