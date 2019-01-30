@@ -78,12 +78,7 @@ To increase the CPU count use `virtualisation.cores` (defaults to 1):
 
 ## Graphics/Xserver
 
-To use graphical applications, add the `-sdl` flag
-and the `virtualisation.graphics` NixOS option (see `examples/vm-graphics.nix`).
-
-```console
-$ QEMU_OPTS="-sdl" nixos-shell
-```
+To use graphical applications, add the `virtualisation.graphics` NixOS option (see `examples/vm-graphics.nix`).
 
 ## Firewall
 
