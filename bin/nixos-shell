@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+script_dir="$(dirname "$(readlink -f "$0")")"
 
 nixos_config=vm.nix
 while [[ $# -gt 0 ]]; do
