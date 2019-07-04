@@ -1,6 +1,6 @@
 with import <nixpkgs> {};
 stdenv.mkDerivation {
-  name = "env";
+  name = "nixos-shell";
   src = ./.;
   buildInputs = [ bash ];
   preConfigure = ''
