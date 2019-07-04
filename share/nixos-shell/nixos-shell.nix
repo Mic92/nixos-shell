@@ -43,15 +43,15 @@ in {
                 type = types.path;
                 description = "Target on the guest.";
               };
-  
+
               inherit cache;
-  
+
               tag = mkOption {
                 type = types.str;
                 internal = true;
               };
             };
-  
+
             config.tag = lib.mkDefault (
               builtins.substring 0 31 ( # tags must be shorter than 32 bytes
                 "a" + # tags must not begin with a digit
