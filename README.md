@@ -12,6 +12,11 @@ Example `vm.nix`:
 }
 ```
 
+## How to install
+
+Best you use the [NUR Package Repository](https://github.com/nix-community/NUR#installation)
+and install `repos.mic92.nixos-shell`.
+
 ## Start a virtual machine
 
 To start a vm use:
