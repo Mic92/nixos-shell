@@ -19,6 +19,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 export QEMU_NIXOS_CONFIG="$(readlink -f "$nixos_config")"
+unset NIXOS_CONFIG
 
 tempdir=$(mktemp -d)
 cleanup() {
