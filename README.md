@@ -94,6 +94,20 @@ This can be overridden by:
 { networking.firewall.enable = true; }
 ```
 
+## Mounting physical disks
+
+There does not exists any explicit options right now but 
+one can use either the `$QEMU_OPTS` environment variable
+or set `virtualisation.qemu.options` to pass the right qemu
+command line flags:
+
+```
+{
+  # /dev/sdc also needs to be read-writable by the user executing nixos-shell
+  virtualisation.qemu.options = "-hdc /dev/sdc";
+}
+```
+
 ## Shared folders
 
 To mount anywhere inside the virtual machine, use the `nixos-shell.mounts.extraMounts` option.
