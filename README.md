@@ -14,8 +14,9 @@ Example `vm.nix`:
 
 ## How to install
 
-Best you use the [NUR Package Repository](https://github.com/nix-community/NUR#installation)
-and install `repos.mic92.nixos-shell`.
+`nixos-shell` is available in nixpkgs unstable or in
+[NUR](https://github.com/nix-community/NUR#installation) under
+`nur.repos.mic92.nixos-shell`.
 
 ## Start a virtual machine
 
