@@ -66,6 +66,18 @@ Your keys are used to enable passwordless login for the root user.
 At the moment only `~/.ssh/id_rsa.pub`, `~/.ssh/id_ecdsa.pub` and `~/.ssh/id_ed25519.pub` are
 added automatically. Use `users.users.root.openssh.authorizedKeys.keyFiles` to add more.
 
+*Note: sshd is not started by default. It can be enabled by setting
+`services.openssh.enable = true`.*
+
+## Bridge Network
+
+QEMU is started with user mode network by default. To use bridge network instead, 
+set `virtualisation.qemu.networkingOptions` to something like
+`[ "-nic bridge,br=br0,model=virtio-net-pci,mac=11:11:11:11:11:11,helper=/run/wrappers/bin/qemu-bridge-helper" ]`.
+QEMU needs to be installed on the host to get `qemu-bridge-helper` with setuid bit 
+set - otherwise you will need to start VM as root.
+
+
 ## RAM
 
 By default qemu will allow at most 500MB of RAM, this can be increased using `virtualisation.memorySize`.
