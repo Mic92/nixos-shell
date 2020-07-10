@@ -73,9 +73,11 @@ added automatically. Use `users.users.root.openssh.authorizedKeys.keyFiles` to a
 
 QEMU is started with user mode network by default. To use bridge network instead, 
 set `virtualisation.qemu.networkingOptions` to something like
-`[ "-nic bridge,br=br0,model=virtio-net-pci,mac=11:11:11:11:11:11,helper=/run/wrappers/bin/qemu-bridge-helper" ]`.
+`[ "-nic bridge,br=br0,model=virtio-net-pci,mac=11:11:11:11:11:11,helper=/run/wrappers/bin/qemu-bridge-helper" ]`. `/run/wrappers/bin/qemu-bridge-helper` is a NixOS specific
+path for qemu-bridge-helper on other Linux distributions it will be different.
 QEMU needs to be installed on the host to get `qemu-bridge-helper` with setuid bit 
-set - otherwise you will need to start VM as root.
+set - otherwise you will need to start VM as root. On NixOS this can be achieved using
+`virtualisation.libvirtd.enable = true;`
 
 
 ## RAM
