@@ -129,7 +129,7 @@ command line flags:
 ## Boot with efi
 
 ``` nix
-virtualisation.qemu.options = [ "-bios ${pkgs.OVMF.fd}/FV/OVMF.fd" ];
+{ virtualisation.qemu.options = [ "-bios ${pkgs.OVMF.fd}/FV/OVMF.fd" ]; }
 ```
 
 ## Shared folders
