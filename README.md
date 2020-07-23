@@ -119,7 +119,7 @@ one can use either the `$QEMU_OPTS` environment variable
 or set `virtualisation.qemu.options` to pass the right qemu
 command line flags:
 
-```
+```nix
 {
   # /dev/sdc also needs to be read-writable by the user executing nixos-shell
   virtualisation.qemu.options = "-hdc /dev/sdc";
