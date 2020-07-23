@@ -126,6 +126,12 @@ command line flags:
 }
 ```
 
+## Boot with efi
+
+``` nix
+virtualisation.qemu.options = [ "-bios ${pkgs.OVMF.fd}/FV/OVMF.fd" ];
+```
+
 ## Shared folders
 
 To mount anywhere inside the virtual machine, use the `nixos-shell.mounts.extraMounts` option.
