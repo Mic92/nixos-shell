@@ -174,7 +174,6 @@ This problem can be circumvented by fully emulating the CPU:
 export QEMU_OPTS="-cpu Skylake-Client"
 nixos-shell
 ```
-
 A full list of supported qemu cpus can be obtained by running `qemu-system-arm -cpu help`.
 
 ## More configuration
