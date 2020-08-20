@@ -122,14 +122,15 @@ command line flags:
 ```nix
 {
   # /dev/sdc also needs to be read-writable by the user executing nixos-shell
-  virtualisation.qemu.options = "-hdc /dev/sdc";
+  virtualisation.qemu.options = [ "-hdc" "/dev/sdc" ];
 }
 ```
+
 
 ## Boot with efi
 
 ``` nix
-{ virtualisation.qemu.options = [ "-bios ${pkgs.OVMF.fd}/FV/OVMF.fd" ]; }
+{ virtualisation.qemu.options = [ "-bios" "${pkgs.OVMF.fd}/FV/OVMF.fd" ]; }
 ```
 
 ## Shared folders
