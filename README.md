@@ -166,15 +166,18 @@ You can further configure the default mount settings:
 
 Available cache modes are documented in the [9p kernel module].
 
-## Without KVM
+## Disable KVM
 
 In many cloud environments KVM is not available and therefore nixos-shell will fail with:  
 `CPU model 'host' requires KVM`.  
-This problem can be circumvented by fully emulating the CPU:
+In newer versions of nixpkgs this has been fixed by falling back to [emulation](https://github.com/NixOS/nixpkgs/pull/95956).
+In older version one can set the `virtualisation.qemu.options` or set the environment variable `QEMU_OPTS`:
+
 ```bash
-export QEMU_OPTS="-cpu Skylake-Client"
+export QEMU_OPTS="-cpu max"
 nixos-shell
 ```
+
 A full list of supported qemu cpus can be obtained by running `qemu-kvm -cpu help`.
 
 ## More configuration
