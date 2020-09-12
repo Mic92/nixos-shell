@@ -185,4 +185,4 @@ A full list of supported qemu cpus can be obtained by running `qemu-kvm -cpu hel
 Have a look at the [virtualisation] options NixOS provides.
 
 [virtualisation]: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/qemu-vm.nix
-[9p kernel module]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/Documentation/filesystems/9p.txt
+[9p kernel module]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/Documentation/filesystems/9p.rst
