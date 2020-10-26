@@ -5,23 +5,39 @@ set -euo pipefail
 script_dir="$(dirname "$(readlink -f "$0")")"
 
 usage() {
-  echo "USAGE: $0 vm.nix" 1>&2
-  exit
+  echo "USAGE: $0 [--builders builders] [--fallback] [-I path]
+[--impure] [--keep-going | -k] [--keep-failed | -K]
+[--no-net] [--option name value] [--repair]
+[--refresh] [--show-trace] [--verbose | -v | -vv | -vvv | -vvvv | -vvvvv]
+vm.nix" 1>&2
 }
 
 nixos_config=vm.nix
 while [[ $# -gt 0 ]]; do
-  case "$1" in
+  i="$1"; shift 1
+  case "$i" in
   --)
     shift
     break
     ;;
   --help|-h)
     usage
+    exit
+    ;;
+  -I|--builders)
+    j="$1"; shift 1
+    extraBuildFlags+=("$i" "$j")
+    ;;
+  --show-trace|--keep-failed|-K|--keep-going|-k|--verbose|-v|-vv|-vvv|-vvvv|-vvvvv|--fallback|--repair|-L|--refresh|--no-net|--impure)
+    extraBuildFlags+=("$i")
+    ;;
+  --option)
+    j="$1"; shift 1
+    k="$1"; shift 1
+    extraBuildFlags+=("$i" "$j" "$k")
     ;;
   *)
-    nixos_config="$1"
-    shift
+    nixos_config="$i"
     ;;
   esac
 done
@@ -37,5 +53,7 @@ trap cleanup EXIT SIGINT SIGQUIT ERR
 
 nix-build '<nixpkgs/nixos>' -A vm -k \
   -I "nixos-config=${script_dir}/../share/nixos-shell/nixos-shell.nix" \
-  -o "${tempdir}/result" "$@"
+  -o "${tempdir}/result" \
+  "${extraBuildFlags[@]}"
+  "$@"
 "${tempdir}/result/bin/"run-*-vm
