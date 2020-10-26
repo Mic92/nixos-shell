@@ -4,12 +4,20 @@ set -euo pipefail
 
 script_dir="$(dirname "$(readlink -f "$0")")"
 
+usage() {
+  echo "USAGE: $0 vm.nix" 1>&2
+  exit
+}
+
 nixos_config=vm.nix
 while [[ $# -gt 0 ]]; do
   case "$1" in
   --)
     shift
     break
+    ;;
+  --help|-h)
+    usage
     ;;
   *)
     nixos_config="$1"
