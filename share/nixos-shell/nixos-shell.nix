@@ -96,7 +96,7 @@ in {
       # Allow the user to login as root without password.
       users.extraUsers.root.initialHashedPassword = "";
 
-      services.mingetty.helpLine = ''
+      services.getty.helpLine = ''
         Log in as "root" with an empty password.
         If you are connect via serial console:
         Type Ctrl-a c to switch to the qemu console
