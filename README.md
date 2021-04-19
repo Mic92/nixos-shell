@@ -99,6 +99,14 @@ To increase the CPU count use `virtualisation.cores` (defaults to 1):
 { virtualisation.cores = 2; }
 ```
 
+## Hard drive
+
+To increase the size of the virtual hard drive, i. e. times 20 (see [virtualisation] options at bottom, defaults to 512M):
+
+```nix
+{ virtualisation.diskSize = 20 * 512; }
+```
+
 ## Graphics/Xserver
 
 To use graphical applications, add the `virtualisation.graphics` NixOS option (see `examples/vm-graphics.nix`).
