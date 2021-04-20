@@ -109,6 +109,12 @@ To increase the size of the virtual hard drive, i. e. times 20 (see [virtualisat
 
 Notice that for this option to become effective you may also need to delete previous block device files created by qemu (`nixos.qcow2`).
 
+Also note, that in some cases you might want to use nixos-shell as a remote builder provider, to enable storing changes to the nix store in the block device rather than in tmpfs:
+
+```nix
+{ virtualisation.writableStoreUseTmpfs = false; }
+```
+
 ## Graphics/Xserver
 
 To use graphical applications, add the `virtualisation.graphics` NixOS option (see `examples/vm-graphics.nix`).
