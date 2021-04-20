@@ -188,6 +188,21 @@ nixos-shell
 
 A full list of supported qemu cpus can be obtained by running `qemu-kvm -cpu help`.
 
+## Channels/NIX_PATH
+
+By default VMs will have a NIX_PATH configured for nix channels but no channel are downloaded yet.
+To avoid having to download a nix-channel every time the VM is reset, you can use the following nixos configuration:
+
+```nix
+{...}: {
+  nix.nixPath = [
+    "nixpkgs=${pkgs.path}"
+  ];
+}
+```
+
+This will add the nixpkgs that is used for the VM in the NIX_PATH of login shell.
+
 ## More configuration
 
 Have a look at the [virtualisation] options NixOS provides.
