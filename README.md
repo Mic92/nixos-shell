@@ -107,6 +107,8 @@ To increase the size of the virtual hard drive, i. e. times 20 (see [virtualisat
 { virtualisation.diskSize = 20 * 512; }
 ```
 
+Notice that for this option to become effective you may also need to delete previous block device files created by qemu (`nixos.qcow2`).
+
 ## Graphics/Xserver
 
 To use graphical applications, add the `virtualisation.graphics` NixOS option (see `examples/vm-graphics.nix`).
