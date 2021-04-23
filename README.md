@@ -14,9 +14,7 @@ Example `vm.nix`:
 
 ## How to install
 
-`nixos-shell` is available in nixpkgs unstable or in
-[NUR](https://github.com/nix-community/NUR#installation) under
-`nur.repos.mic92.nixos-shell`.
+`nixos-shell` is available in nixpkgs.
 
 ## Start a virtual machine
 
