@@ -114,6 +114,8 @@ that is configured by `virtualisation.diskSize`. This tmpfs can be changed howev
 { virtualisation.writableStoreUseTmpfs = false; }
 ```
 
+Notice that for nixos-shell to act as a remote builder the `virtualisation.writableStoreUseTmpfs` setting is the only additional setting needed besides depending on target system i. e. `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];`.
+
 ## Graphics/Xserver
 
 To use graphical applications, add the `virtualisation.graphics` NixOS option (see `examples/vm-graphics.nix`).
