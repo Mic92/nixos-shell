@@ -108,13 +108,13 @@ To increase the size of the virtual hard drive, i. e. times 20 (see [virtualisat
 Notice that for this option to become effective you may also need to delete previous block device files created by qemu (`nixos.qcow2`).
 
 Notice that changes in the nix store are written to an overlayfs backed by tmpfs rather than the block device
-that is configured by `virtualisation.diskSize`. This tmpfs can be changed however by using:
+that is configured by `virtualisation.diskSize`. This tmpfs can be disabled however by using:
 
 ```nix
 { virtualisation.writableStoreUseTmpfs = false; }
 ```
 
-Notice that for nixos-shell to act as a remote builder the `virtualisation.writableStoreUseTmpfs` setting is the only additional setting needed besides depending on target system i. e. `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];`.
+This option is recommend if you plan to use nixos-shell as a remote builder.
 
 ## Graphics/Xserver
 
