@@ -114,7 +114,7 @@ in {
 
       virtualisation = {
         graphics = mkVMDefault false;
-        memorySize = mkVMDefault "500M";
+        memorySize = mkVMDefault "700M";
 
         qemu.consoles = lib.mkIf (!config.virtualisation.graphics) ["tty0" "hvc0"];
 
