@@ -107,9 +107,18 @@ in {
         graphics = mkVMDefault false;
         memorySize = mkVMDefault "500M";
 
+        qemu.consoles = lib.mkIf (!config.virtualisation.graphics) ["tty0" "hvc0"];
+
         qemu.options = let
           nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
         in
+          lib.optional (!config.virtualisation.graphics) [
+            "-serial null"
+            "-device virtio-serial"
+            "-chardev stdio,mux=on,id=char0,signal=off"
+            "-mon chardev=char0,mode=readline"
+            "-device virtconsole,chardev=char0,nr=0"
+          ] ++
           lib.optional cfg.mounts.mountHome "-virtfs local,path=/home,security_model=none,mount_tag=home" ++
           lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
           lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}") cfg.mounts.extraMounts;
