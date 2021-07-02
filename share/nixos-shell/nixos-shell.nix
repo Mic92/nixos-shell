@@ -96,6 +96,11 @@ in {
       # Allow the user to login as root without password.
       users.extraUsers.root.initialHashedPassword = "";
 
+      # see https://wiki.qemu.org/Documentation/9psetup#Performance_Considerations
+      # == 100M
+      # FIXME? currently 500K seems to be the limit?
+      virtualisation.msize = mkVMDefault 104857600;
+
       services = let
         service = if lib.versionAtLeast (lib.versions.majorMinor lib.version) "20.09" then "getty" else "mingetty";
       in {
@@ -132,15 +137,15 @@ in {
       boot.initrd.postMountCommands =
         (lib.optionalString cfg.mounts.mountHome ''
           mkdir -p $targetRoot/home/
-          mount -t 9p home $targetRoot/home/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache}
+          mount -t 9p home $targetRoot/home/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
         '') +
         (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
           mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
-          mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache}
+          mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
         '') +
         builtins.concatStringsSep " " (lib.mapAttrsToList (target: mount: ''
           mkdir -p $targetRoot/${target}
-          mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache}
+          mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}
         '') cfg.mounts.extraMounts);
 
       environment = {
