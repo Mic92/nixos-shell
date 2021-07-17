@@ -99,10 +99,10 @@ To increase the CPU count use `virtualisation.cores` (defaults to 1):
 
 ## Hard drive
 
-To increase the size of the virtual hard drive, i. e. times 20 (see [virtualisation] options at bottom, defaults to 512M):
+To increase the size of the virtual hard drive, i. e. to 20 GB (see [virtualisation] options at bottom, defaults to 512M):
 
 ```nix
-{ virtualisation.diskSize = 20 * 512; }
+{ virtualisation.diskSize = 20 * 1024; }
 ```
 
 Notice that for this option to become effective you may also need to delete previous block device files created by qemu (`nixos.qcow2`).
