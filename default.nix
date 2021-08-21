@@ -1,4 +1,8 @@
-with import <nixpkgs> {};
+{
+  pkgs ? import <nixpkgs> {},
+}:
+
+with pkgs;
 stdenv.mkDerivation {
   name = "nixos-shell";
   src = builtins.filterSource
