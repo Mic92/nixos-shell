@@ -124,7 +124,7 @@ in {
         qemu.options = let
           nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
         in
-          lib.optional (!config.virtualisation.graphics) [
+          lib.optionals (!config.virtualisation.graphics) [
             "-serial null"
             "-device virtio-serial"
             "-chardev stdio,mux=on,id=char0,signal=off"
