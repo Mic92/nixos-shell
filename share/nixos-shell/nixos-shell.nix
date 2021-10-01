@@ -67,7 +67,10 @@ in {
 
   config = let
     user = builtins.getEnv "USER";
-    shell = builtins.baseNameOf (builtins.getEnv "SHELL");
+    shell' = builtins.baseNameOf (builtins.getEnv "SHELL");
+
+    # fish seems to do funky stuff: https://github.com/Mic92/nixos-shell/issues/42
+    shell = if shell' == "fish" then "bash" else shell';
   in lib.mkMerge [
     # Enable the module of the user's shell for some sensible defaults.
     (lib.mkIf (options.programs ? ${shell}.enable && shell != "bash") {
