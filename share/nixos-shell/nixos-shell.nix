@@ -117,14 +117,14 @@ in {
 
       virtualisation = {
         graphics = mkVMDefault false;
-        memorySize = mkVMDefault "700M";
+        memorySize = mkVMDefault 700;
 
         qemu.consoles = lib.mkIf (!config.virtualisation.graphics) ["tty0" "hvc0"];
 
         qemu.options = let
           nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
         in
-          lib.optional (!config.virtualisation.graphics) [
+          lib.optionals (!config.virtualisation.graphics) [
             "-serial null"
             "-device virtio-serial"
             "-chardev stdio,mux=on,id=char0,signal=off"

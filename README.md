@@ -83,10 +83,10 @@ set - otherwise you will need to start VM as root. On NixOS this can be achieved
 
 ## RAM
 
-By default qemu will allow at most 500MB of RAM, this can be increased using `virtualisation.memorySize`.
+By default qemu will allow at most 500MB of RAM, this can be increased using `virtualisation.memorySize` (size in megabyte).
 
 ```nix
-{ virtualisation.memorySize = "1024M"; }
+{ virtualisation.memorySize = 1024; }
 ```
 
 ## CPUs
