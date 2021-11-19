@@ -1,15 +1,14 @@
-{ lib, options, config, pkgs, ... }:
+{ lib, options, config, pkgs, modulesPath, ... }:
 
 let
-  nixos_config = builtins.getEnv "QEMU_NIXOS_CONFIG";
   cfg = config.nixos-shell;
 
   mkVMDefault = lib.mkOverride 900;
 in {
-  imports = lib.optional (nixos_config != "") nixos_config ++ [
-    <nixpkgs/nixos/modules/virtualisation/qemu-vm.nix>
+  imports = [
+    "${toString modulesPath}/virtualisation/qemu-vm.nix"
   ];
-
+  
   options.nixos-shell = with lib; {
     mounts = let
       cache = mkOption {

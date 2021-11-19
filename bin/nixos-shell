@@ -3,9 +3,11 @@
 set -euo pipefail
 
 script_dir="$(dirname "$(readlink -f "$0")")"
+flake_uri=
+flake_attr=
 
 usage() {
-  echo "USAGE: $0 [--builders builders] [--fallback] [-I path]
+  echo "USAGE: $0 [--builders builders] [--flake uri] [--fallback] [-I path]
 [--impure] [--keep-going | -k] [--keep-failed | -K]
 [--no-net] [--option name value] [--repair]
 [--refresh] [--show-trace] [--verbose | -v | -vv | -vvv | -vvvv | -vvvvv]
@@ -23,6 +25,13 @@ while [[ $# -gt 0 ]]; do
   --help|-h)
     usage
     exit
+    ;;
+  --flake)
+    flake="$(echo "$1" | awk -F '#' '{ print $1; }')"
+
+    flake_uri="$(nix flake metadata --json -- "$flake" | jq -r .url)"
+    flake_attr="$(echo "$1" | awk -F'#' '{ print $2; }')"
+    shift
     ;;
   -I|--builders)
     j="$1"; shift 1
@@ -42,7 +51,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-export QEMU_NIXOS_CONFIG="$(readlink -f "$nixos_config")"
 unset NIXOS_CONFIG
 
 tempdir=$(mktemp -d)
@@ -51,8 +59,18 @@ cleanup() {
 }
 trap cleanup EXIT SIGINT SIGQUIT ERR
 
-nix-build '<nixpkgs/nixos>' -A vm -k \
-  -I "nixos-config=${script_dir}/../share/nixos-shell/nixos-shell.nix" \
+if [[ -z "$flake_uri" ]]; then
+  extraBuildFlags+=(
+    -I "nixos-config=$nixos_config"
+  )
+else
+  extraBuildFlags+=(
+    --argstr flakeUri "$flake_uri"
+    --argstr flakeAttr "${flake_attr:-"vm"}"
+  )
+fi
+
+nix-build "${script_dir}/../share/nixos-shell.nix" -A "config.system.build.vm" -k \
   -o "${tempdir}/result" \
   "${extraBuildFlags[@]}"
   "$@"
