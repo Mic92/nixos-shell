@@ -24,4 +24,5 @@ test-efi:
 install:
 	$(INSTALL) -D bin/nixos-shell $(DESTDIR)$(PREFIX)/bin/nixos-shell
 	$(INSTALL) -D share/modules/nixos-shell.nix $(DESTDIR)$(PREFIX)/share/modules/nixos-shell.nix
+	$(INSTALL) -D share/modules/nixos-shell-config.nix $(DESTDIR)$(PREFIX)/share/modules/nixos-shell-config.nix
 	$(INSTALL) -D share/nixos-shell.nix $(DESTDIR)$(PREFIX)/share/nixos-shell.nix

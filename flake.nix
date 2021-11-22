@@ -18,13 +18,15 @@
 
     mkSystem = pkgs: config: makeOverridable nixosSystem {
       system = "x86_64-linux";
-      modules = [ config ];
+      modules = [ config  inp.self.nixosModules.nixos-shell ];
     };
 
     supportedSystems = [ "x86_64-linux" ];
   in
   {
     nixosConfigurations = mapAttrs (_name: config: mkSystem inp.nixpkgs config) vms;
+
+    nixosModules.nixos-shell = import ./share/modules/nixos-shell.nix;
   }
 
   //
