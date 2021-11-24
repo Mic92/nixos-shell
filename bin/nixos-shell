@@ -29,7 +29,7 @@ while [[ $# -gt 0 ]]; do
   --flake)
     flake="$(echo "$1" | awk -F '#' '{ print $1; }')"
 
-    flake_uri="$(nix flake metadata --json -- "$flake" | jq -r .url)"
+    flake_uri="$(nix flake metadata --extra-experimental-features "nix-command flakes"  --json -- "$flake" | jq -r .url)"
     flake_attr="$(echo "$1" | awk -F'#' '{ print $2; }')"
     shift
     ;;
@@ -65,6 +65,7 @@ if [[ -z "$flake_uri" ]]; then
   )
 else
   extraBuildFlags+=(
+     --extra-experimental-features "flakes"
     --argstr flakeUri "$flake_uri"
     --argstr flakeAttr "${flake_attr:-"vm"}"
   )
