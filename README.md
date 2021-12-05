@@ -31,6 +31,27 @@ Instead of `vm.nix`, `nixos-shell` also accepts other modules on the command lin
 $ nixos-shell some-nix-module.nix
 ```
 
+You can also start a vm from a flake's `nixosConfigurations` using the `--flake` flag.
+
+```console
+$ nixos-shell --flake github:Mic92/nixos-shell#vm-forward
+```
+
+This will run the `vm-forward` example.
+
+> Note: system configurations have to be made overridable with `lib.makeOverridable` to use them with `nixos-shell`
+>```nix
+>{
+>  nixosConfigurations = let
+>    lib = nixpkgs.lib;
+>  in {
+>    vm = lib.makeOverridable lib.nixosSystem {
+>      # ...
+>    };
+>  };
+>}
+>```
+
 ## Terminating the virtual machine
 
 Type `Ctrl-a x` to exit the virtual machine.
