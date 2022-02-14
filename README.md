@@ -31,7 +31,7 @@ Instead of `vm.nix`, `nixos-shell` also accepts other modules on the command lin
 $ nixos-shell some-nix-module.nix
 ```
 
-You can also start a vm from a flake's `nixosConfigurations` using the `--flake` flag.
+You can also start a vm from a flake's `nixosConfigurations` or `nixosModules` output using the `--flake` flag.
 
 ```console
 $ nixos-shell --flake github:Mic92/nixos-shell#vm-forward
@@ -51,6 +51,16 @@ This will run the `vm-forward` example.
 >  };
 >}
 >```
+
+When using the `--flake` flag, if no attribute is given, `nixos-shell` tries the following flake output attributes:
+- `packages.<system>.nixosConfigurations.<vm>`
+- `nixosConfigurations.<vm>`
+- `nixosModules.<vm>`
+
+If an attribute _name_ is given, `nixos-shell` tries the following flake output attributes:
+- `packages.<system>.nixosConfigurations.<name>`
+- `nixosConfigurations.<name>`
+- `nixosModules.<name>`
 
 ## Terminating the virtual machine
 
