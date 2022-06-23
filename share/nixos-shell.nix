@@ -31,21 +31,19 @@ let
     (getFlakeOutput [ "packages" "${system}" "nixosConfigurations" "${flakeAttr}" ]);
 
   flakeModule = getFlakeOutput [ "nixosModules" "${flakeAttr}" ];
+
+  nixosShellModules =
+    if flakeSystem ? options.nixos-shell then
+      [ nixos-shell-config ]
+    else
+      [ nixos-shell nixos-shell-config ];
 in
 if flakeUri != null then
   if flakeSystem != null then
-    flakeSystem.override
-      (attrs: {
-        modules =
-          let
-            nixosShellModules =
-              if flakeSystem ? options.nixos-shell then
-                [ nixos-shell-config ]
-              else
-                [ nixos-shell nixos-shell-config ];
-          in
-          attrs.modules ++ nixosShellModules;
-      })
+    if flakeSystem ? "extendModules" then
+      flakeSystem.extendModules { modules = nixosShellModules; }
+    else
+      flakeSystem.override (attrs: { modules = attrs.modules ++ nixosShellModules; })
   else if flakeModule != null then
     mkShellSystem flakeModule
   else

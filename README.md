@@ -39,7 +39,11 @@ $ nixos-shell --flake github:Mic92/nixos-shell#vm-forward
 
 This will run the `vm-forward` example.
 
-> Note: system configurations have to be made overridable with `lib.makeOverridable` to use them with `nixos-shell`
+> Note: `nixos-shell` must be able to extend the specified system configuration with [certain modules](share/modules).
+>
+> If your version of `nixpkgs` provides the `extendModules` function on system configurations, `nixos-shell` will use it to inject the required modules; no additional work on your part is needed.
+>
+> If your version of `nixpkgs` **does not** provide `extendModules`, you must make your system configurations overridable with `lib.makeOverridable` to use them with `nixos-shell`:
 >```nix
 >{
 >  nixosConfigurations = let
@@ -51,6 +55,7 @@ This will run the `vm-forward` example.
 >  };
 >}
 >```
+> Specifying a non-overridable system configuration will cause `nixos-shell` to abort with a non-zero exit status.
 
 When using the `--flake` flag, if no attribute is given, `nixos-shell` tries the following flake output attributes:
 - `packages.<system>.nixosConfigurations.<vm>`
