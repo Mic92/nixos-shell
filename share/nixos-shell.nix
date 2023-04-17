@@ -6,7 +6,7 @@
 , flakeAttr ? null
 }:
 let
-  lib = (import nixpkgs { }).lib;
+  lib = flake.inputs.nixpkgs.lib or (import nixpkgs { }).lib;
 
   nixos-shell = import ./modules/nixos-shell.nix;
   nixos-shell-config = import ./modules/nixos-shell-config.nix;
@@ -15,7 +15,7 @@ let
 
   getFlakeOutput = path: lib.attrByPath path null flake.outputs;
 
-  mkShellSystem = config: import "${toString nixpkgs}/nixos/lib/eval-config.nix" {
+  mkShellSystem = config: import "${toString flake.inputs.nixpkgs or nixpkgs}/nixos/lib/eval-config.nix" {
     inherit system;
     modules = [
       config
