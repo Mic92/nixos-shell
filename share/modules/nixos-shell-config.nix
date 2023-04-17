@@ -12,13 +12,12 @@ in {
 
       # fish seems to do funky stuff: https://github.com/Mic92/nixos-shell/issues/42
       shell = if shell' == "fish" then "bash" else shell';
-    in
-    lib.mkMerge [
       # Enable the module of the user's shell for some sensible defaults.
-      (lib.mkIf (options.programs ? ${shell}.enable && shell != "bash") {
+      maybeSetShell = lib.optional (options.programs ? ${shell}.enable && shell != "bash") {
         programs.${shell}.enable = mkVMDefault true;
-      })
-
+      };
+    in
+    lib.mkMerge (maybeSetShell ++ [
       (lib.mkIf (pkgs ? ${shell}) {
         users.extraUsers.root.shell = mkVMDefault pkgs.${shell};
       })
@@ -127,5 +126,5 @@ in {
 
         networking.firewall.enable = mkVMDefault false;
       }
-    ];
+    ]);
 }
