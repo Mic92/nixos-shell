@@ -15,7 +15,7 @@ let
 
   getFlakeOutput = path: lib.attrByPath path null flake.outputs;
 
-  mkShellSystem = config: import "${toString flake.inputs.nixpkgs or nixpkgs}/nixos/lib/eval-config.nix" {
+  mkShellSystem = config: import "${if !(flakeUri == null) then (toString flake.inputs.nixpkgs) else (toString nixpkgs)}/nixos/lib/eval-config.nix" {
     inherit system;
     modules = [
       config
