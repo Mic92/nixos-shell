@@ -65,7 +65,8 @@ if [[ -z "$flake_uri" ]]; then
   )
 else
   extraBuildFlags+=(
-     --extra-experimental-features "flakes"
+    --extra-experimental-features "flakes"
+    --argstr flakeStr "$flake"
     --argstr flakeUri "$flake_uri"
     --argstr flakeAttr "${flake_attr:-"vm"}"
   )

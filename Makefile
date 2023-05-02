@@ -21,6 +21,9 @@ test-mounts:
 test-efi:
 	$(NIXOS_SHELL) examples/vm-efi.nix
 
+test-broken:
+	! $(NIXOS_SHELL) --flake '.#BROKEN-DO-NOT-USE-UNLESS-YOU-KNOW-WHAT-YOU-ARE-DOING'
+
 install:
 	$(INSTALL) -D bin/nixos-shell $(DESTDIR)$(PREFIX)/bin/nixos-shell
 	$(INSTALL) -D share/modules/nixos-shell.nix $(DESTDIR)$(PREFIX)/share/modules/nixos-shell.nix

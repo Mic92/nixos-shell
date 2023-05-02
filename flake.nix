@@ -18,13 +18,24 @@
 
     mkSystem = pkgs: config: makeOverridable nixosSystem {
       system = "x86_64-linux";
-      modules = [ config  inp.self.nixosModules.nixos-shell ];
+      modules = [ config inp.self.nixosModules.nixos-shell ];
     };
 
     supportedSystems = [ "x86_64-linux" ];
   in
   {
-    nixosConfigurations = mapAttrs (_name: config: mkSystem inp.nixpkgs config) vms;
+    nixosConfigurations =
+      let
+        configs = mapAttrs (_name: config: mkSystem inp.nixpkgs config) vms;
+      in
+      configs
+      //
+      {
+        # Used for testing that nixos-shell exits nonzero when provided a
+        # non-extensible config
+        BROKEN-DO-NOT-USE-UNLESS-YOU-KNOW-WHAT-YOU-ARE-DOING =
+          removeAttrs configs.vm [ "extendModules" "override" ];
+      };
 
     nixosModules.nixos-shell = import ./share/modules/nixos-shell.nix;
   }
