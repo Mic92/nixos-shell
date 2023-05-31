@@ -85,13 +85,12 @@ Or switch to qemu console with `Ctrl-a c` and type:
 
 ## Port forwarding
 
-To forward ports from the virtual machine to the host, override the
-`virtualisation.qemu.networkingOptions` NixOS option.
+To forward ports from the virtual machine to the host, use the
+`virtualisation.forwardPorts` NixOS option.
 See `examples/vm-forward.nix` where the ssh server running on port 22 in the
 virtual machine is made accessible through port 2222 on the host.
 
-If `virtualisation.qemu.networkingOptions` is not overridden the same can be
-also achieved by using the `QEMU_NET_OPTS` environment variable.
+The same can be also achieved by using the `QEMU_NET_OPTS` environment variable.
 
 ```console
 $ QEMU_NET_OPTS="hostfwd=tcp::2222-:22" nixos-shell
