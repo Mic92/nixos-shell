@@ -1,4 +1,4 @@
-{ lib, options, pkgs, modulesPath, ... }:
+{ lib, modulesPath, ... }:
 
 {
   imports = [
@@ -16,7 +16,7 @@
       mountHome = mkOption {
         type = types.bool;
         default = true;
-        description = "Whether to mount <filename>/home</filename>.";
+        description = "Whether to mount `/home`.";
       };
 
       mountNixProfile = mkOption {
@@ -36,7 +36,7 @@
             options = {
               target = mkOption {
                 type = types.path;
-                description = "Target on the guest.";
+                description = lib.mdDoc "Target on the guest.";
               };
 
               inherit cache;
