@@ -51,18 +51,12 @@ in {
         # FIXME? currently 500K seems to be the limit?
         virtualisation.msize = mkVMDefault 104857600;
 
-        services =
-          let
-            service = if lib.versionAtLeast (lib.versions.majorMinor lib.version) "20.09" then "getty" else "mingetty";
-          in
-          {
-            ${service}.helpLine = ''
-              Log in as "root" with an empty password.
-              If you are connect via serial console:
-              Type Ctrl-a c to switch to the qemu console
-              and `quit` to stop the VM.
-            '';
-          };
+        services.getty.helpLine = ''
+          If you are connect via serial console:
+          Type Ctrl-a c to switch to the qemu console
+          and `quit` to stop the VM.
+        '';
+        services.getty.autologinUser = "root";
 
         virtualisation = {
           graphics = mkVMDefault false;
