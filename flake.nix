@@ -42,13 +42,15 @@
 
   //
 
-  lib.foldl' lib.recursiveUpdate {} (lib.forEach supportedSystems (system: rec {
+  lib.foldl' lib.recursiveUpdate {} (lib.forEach supportedSystems (system: {
 
-    packages."${system}".nixos-shell = import ./default.nix {
-      pkgs = inp.nixpkgs.legacyPackages."${system}";
+    packages."${system}" = {
+      nixos-shell = import ./default.nix {
+        pkgs = inp.nixpkgs.legacyPackages."${system}";
+      };
+
+      default = inp.self.packages."${system}".nixos-shell;
     };
-
-    defaultPackage."${system}" = packages."${system}".nixos-shell;
 
   }));
 }
