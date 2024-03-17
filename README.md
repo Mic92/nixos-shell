@@ -67,6 +67,7 @@ If an attribute _name_ is given, `nixos-shell` tries the following flake output 
 - `nixosConfigurations.<name>`
 - `nixosModules.<name>`
 
+
 ## Terminating the virtual machine
 
 Type `Ctrl-a x` to exit the virtual machine.
@@ -246,6 +247,40 @@ To avoid having to download a nix-channel every time the VM is reset, you can us
 ```
 
 This will add the nixpkgs that is used for the VM in the NIX_PATH of login shell.
+
+## Embedding nixos-shell in your own nixos-configuration
+
+Instead of using the cli, it's also possible to include the `nixos-shell` NixOS module in your own NixOS configuration.
+
+Add this to your `flake.nix`:
+
+```nix
+{
+  inputs.nixos-shell.url = "github:Mic92/nixos-shell";
+}
+```
+
+And this to your nixos configuration defined in your flake:
+
+```nix
+{
+  imports = [ inputs.nixos-shell.nixosModules.nixos-shell ];
+}
+```
+
+Afterwards you can start your nixos configuration with nixos-shell with one of the two following variants:
+
+For the pure version (doesn't set SHELL or mount /home):
+
+```
+nix run .#nixosConfigurations.<yourmachine>.config.system.build.nixos-shell
+```
+
+Or for a version closer to `nixos-shell`:
+
+```
+nix run .#nixosConfigurations.<yourmachine>.config.system.build.nixos-shell
+```
 
 ## More configuration
 

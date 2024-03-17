@@ -9,9 +9,6 @@
 let
   lib = flake.inputs.nixpkgs.lib or (import nixpkgs { }).lib;
 
-  nixos-shell = import ./modules/nixos-shell.nix;
-  nixos-shell-config = import ./modules/nixos-shell-config.nix;
-
   defaultTo = default: e: if e == null then default else e;
 
   getFlakeOutput = path: lib.attrByPath path null flake.outputs;
@@ -20,8 +17,8 @@ let
     inherit system;
     modules = [
       config
-      nixos-shell
-      nixos-shell-config
+      ./modules/nixos-shell.nix
+      ./modules/nixos-shell-config.nix
     ];
   };
 
@@ -33,11 +30,10 @@ let
 
   flakeModule = getFlakeOutput [ "nixosModules" "${flakeAttr}" ];
 
-  nixosShellModules =
-    if flakeSystem ? options.nixos-shell then
-      [ nixos-shell-config ]
-    else
-      [ nixos-shell nixos-shell-config ];
+  nixosShellModules = [
+    ./modules/nixos-shell.nix
+    ./modules/nixos-shell-config.nix
+  ];
 in
 if flakeUri != null then
   if flakeSystem != null then

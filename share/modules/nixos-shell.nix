@@ -1,4 +1,4 @@
-{ lib, modulesPath, ... }:
+{ lib, modulesPath, pkgs, extendModules, ... }:
 
 {
   imports = [
@@ -58,5 +58,15 @@
         default = {};
       };
     };
+  };
+
+  config = let
+    vmSystem = extendModules {
+      modules = [
+        ./nixos-shell-config.nix
+      ];
+    };
+  in {
+    system.build.nixos-shell = vmSystem.config.system.build.vm;
   };
 }
