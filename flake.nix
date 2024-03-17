@@ -37,7 +37,7 @@
           removeAttrs configs.vm [ "extendModules" "override" ];
       };
 
-    nixosModules.nixos-shell = import ./share/modules/nixos-shell.nix;
+    nixosModules.nixos-shell.imports = [ ./share/modules/nixos-shell.nix ];
   }
 
   //
