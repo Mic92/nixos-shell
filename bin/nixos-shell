@@ -87,5 +87,6 @@ nix build config.system.build.vm \
   --file "${script_dir}/../share/nixos-shell.nix" \
   --keep-going \
   --out-link "$TEMP_DIR/result" \
-  "${extraBuildFlags[@]}" \
-"$TEMP_DIR/result/bin/run" "$@"
+  "${extraBuildFlags[@]}"
+
+"$TEMP_DIR/result/bin/run-nixos-vm" "$@"
