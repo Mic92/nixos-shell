@@ -80,8 +80,12 @@ else
   )
 fi
 
-nix run config.system.build.vm \
+TEMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TEMP_DIR"' EXIT
+
+nix build config.system.build.vm \
   --file "${script_dir}/../share/nixos-shell.nix" \
   --keep-going \
+  --out-link "$TEMP_DIR/result" \
   "${extraBuildFlags[@]}" \
-  "$@"
+"$TEMP_DIR/result/bin/run" "$@"
