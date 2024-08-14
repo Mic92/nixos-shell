@@ -282,6 +282,20 @@ Or for a version closer to `nixos-shell`:
 nix run .#nixosConfigurations.<yourmachine>.config.system.build.nixos-shell
 ```
 
+## Running different architectures / operating systems i.e. Linux on MacOS
+
+It's possible to specify a different architecture using `--guest-system`.
+This requires your host system to have a either a remote builder
+(i.e. [darwin-builder](https://github.com/NixOS/nixpkgs/blob/master/doc/packages/darwin-builder.section.md) on macOS)
+or beeing able to run builds in emulation
+for the guest system (`boot.binfmt.emulatedSystems` on NixOS.).
+
+Here is an example for macOS (arm) that will run an aarch64-linux vm:
+
+```
+$ nixos-shell --guest-system aarch64-linux examples/vm.nix
+```
+
 ## More configuration
 
 Have a look at the [virtualisation] options NixOS provides.
