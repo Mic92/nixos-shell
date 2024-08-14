@@ -1,4 +1,4 @@
-{ lib, modulesPath, pkgs, extendModules, ... }:
+{ lib, pkgs, modulesPath, config, options, extendModules, ... }:
 
 {
   imports = [
@@ -15,13 +15,14 @@
     in {
       mountHome = mkOption {
         type = types.bool;
-        default = true;
-        description = "Whether to mount `/home`.";
+        default = builtins.getEnv "HOME" != "";
+        description = "Whether to mount `$HOME`.";
       };
 
       mountNixProfile = mkOption {
         type = types.bool;
-        default = true;
+        # if our host os does not match the guest os, binaries in our nix profile will not work
+        default = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform != pkgs.stdenv.hostPlatform;
         description = "Whether to mount the user's nix profile.";
       };
 

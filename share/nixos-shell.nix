@@ -1,39 +1,47 @@
 { nixpkgs ? <nixpkgs>
-, system ? builtins.currentSystem
+, guestSystem ? builtins.currentSystem
+, hostSystem ? builtins.currentSystem
 , configuration ? <nixos-config>
-
 , flakeStr ? null # flake as named on the command line
 , flakeUri ? null
 , flakeAttr ? null
 }:
 let
-  lib = flake.inputs.nixpkgs.lib or (import nixpkgs { }).lib;
+  hasFlake = flakeUri != null;
 
   defaultTo = default: e: if e == null then default else e;
 
-  getFlakeOutput = path: lib.attrByPath path null flake.outputs;
-
-  mkShellSystem = config: import "${if !(flakeUri == null) then (toString flake.inputs.nixpkgs) else (toString nixpkgs)}/nixos/lib/eval-config.nix" {
-    inherit system;
-    modules = [
-      config
-      ./modules/nixos-shell.nix
-      ./modules/nixos-shell-config.nix
-    ];
-  };
-
   flake = builtins.getFlake flakeUri;
 
-  flakeSystem = defaultTo
-    (getFlakeOutput [ "nixosConfigurations" "${flakeAttr}" ])
-    (getFlakeOutput [ "packages" "${system}" "nixosConfigurations" "${flakeAttr}" ]);
-
-  flakeModule = getFlakeOutput [ "nixosModules" "${flakeAttr}" ];
+  getFlakeOutput = path: flake.inputs.nixpkgs.lib.attrByPath path null flake.outputs;
 
   nixosShellModules = [
+    ({lib, ...}: lib.optionalAttrs (guestSystem != hostSystem) {
+      virtualisation.host.pkgs = if hasFlake then
+        flake.inputs.nixpkgs.legacyPackages.${hostSystem}
+      else
+        import nixpkgs { system = hostSystem; };
+    })
     ./modules/nixos-shell.nix
     ./modules/nixos-shell-config.nix
   ];
+
+  nixpkgsPath = if hasFlake then
+    flake.inputs.nixpkgs
+  else
+    nixpkgs;
+
+  mkShellSystem = config: import "${toString nixpkgsPath}/nixos/lib/eval-config.nix" {
+    system = guestSystem;
+    modules = [ config ] ++ nixosShellModules;
+  };
+
+  flakeSystem = defaultTo
+    (getFlakeOutput [ "nixosConfigurations" flakeAttr ])
+    (getFlakeOutput [ "packages" guestSystem "nixosConfigurations" flakeAttr ]);
+
+  flakeModule = getFlakeOutput [ "nixosModules" "${flakeAttr}" ];
+
 in
 if flakeUri != null then
   if flakeSystem != null then
