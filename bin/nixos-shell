@@ -14,7 +14,7 @@ usage() {
 vm.nix" 1>&2
 }
 
-nixos_config=vm.nix
+nixos_config=
 while [[ $# -gt 0 ]]; do
   i="$1"; shift 1
   case "$i" in
@@ -40,21 +40,35 @@ while [[ $# -gt 0 ]]; do
   --show-trace|--keep-failed|-K|--keep-going|-k|--verbose|-v|-vv|-vvv|-vvvv|-vvvvv|--fallback|--repair|-L|--refresh|--no-net|--impure)
     extraBuildFlags+=("$i")
     ;;
+  --guest-system)
+    j="$1"; shift 1
+    extraBuildFlags+=("--argstr" "guestSystem" "$j")
+    ;;
+  --host-system)
+    j="$1"; shift 1
+    extraBuildFlags+=("--argstr" "hostSystem" "$j")
+    ;;
   --option)
     j="$1"; shift 1
     k="$1"; shift 1
     extraBuildFlags+=("$i" "$j" "$k")
     ;;
   *)
+    if [[ -n "$nixos_config" ]]; then
+      usage
+      exit 1
+    fi
     nixos_config="$i"
     ;;
   esac
 done
+nixos_config=${nixos_config:-vm.nix}
 
 unset NIXOS_CONFIG
 
 if [[ -z "$flake_uri" ]]; then
   extraBuildFlags+=(
+    --extra-experimental-features "nix-command"
     -I "nixos-config=$nixos_config"
   )
 else

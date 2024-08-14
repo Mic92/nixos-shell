@@ -2,7 +2,7 @@
 
 let
   cfg = config.nixos-shell;
-
+  home = builtins.getEnv "HOME";
   mkVMDefault = lib.mkOverride 900;
 in {
   config =
@@ -23,9 +23,6 @@ in {
       })
 
       (
-        let
-          home = builtins.getEnv "HOME";
-        in
         lib.mkIf (home != "" && cfg.mounts.mountHome) {
           users.extraUsers.root.home = lib.mkVMOverride home;
         }
@@ -75,7 +72,7 @@ in {
               "-mon chardev=char0,mode=readline"
               "-device virtconsole,chardev=char0,nr=0"
             ] ++
-            lib.optional cfg.mounts.mountHome "-virtfs local,path=/home,security_model=none,mount_tag=home" ++
+            lib.optional cfg.mounts.mountHome "-virtfs local,path=${home},security_model=none,mount_tag=home" ++
             lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
             lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}") cfg.mounts.extraMounts;
         };
@@ -83,8 +80,8 @@ in {
         # build-vm overrides our filesystem settings in nixos-config
         boot.initrd.postMountCommands =
           (lib.optionalString cfg.mounts.mountHome ''
-            mkdir -p $targetRoot/home/
-            mount -t 9p home $targetRoot/home/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
+            mkdir -p $targetRoot/${lib.escapeShellArg home}
+            mount -t 9p home $targetRoot/${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
           '') +
           (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
             mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
@@ -96,6 +93,12 @@ in {
               mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}
             '')
             cfg.mounts.extraMounts);
+
+        # avoid leaking incompatible host binaries into the VM
+        system.activationScripts.shadow-nix-profile = lib.mkIf (options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform != pkgs.stdenv.hostPlatform) (lib.stringAfter [ "specialfs" "users" "groups" ] ''
+          mkdir -p ${lib.escapeShellArg home}/.nix-profile/
+          mount --bind ${config.system.path} ${lib.escapeShellArg home}/.nix-profile/
+        '');
 
         environment = {
           systemPackages = with pkgs; [
