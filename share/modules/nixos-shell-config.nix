@@ -112,8 +112,8 @@ in {
               path = builtins.getEnv "PATH";
             in
             ''
-              # fix terminal size
-              eval "$(resize)"
+              # if terminal with stdout, fix terminal size
+              if [ -t 1 ]; then eval "$(resize)"; fi
 
               ${lib.optionalString (pwd != "") "cd '${pwd}' 2>/dev/null"}
               ${lib.optionalString (term != "") "export TERM='${term}'"}
