@@ -5,10 +5,6 @@ queue_rules:
       - label~=merge-queue|dependencies
     merge_conditions: []
     merge_method: rebase
-defaults:
-  actions:
-    queue:
-      allow_merging_configuration_change: true
 
 pull_request_rules:
   - name: refactored queue action rule
