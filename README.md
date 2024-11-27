@@ -279,7 +279,7 @@ nix run .#nixosConfigurations.<yourmachine>.config.system.build.nixos-shell
 Or for a version closer to `nixos-shell`:
 
 ```
-nix run .#nixosConfigurations.<yourmachine>.config.system.build.nixos-shell
+nix run --impure .#nixosConfigurations.<yourmachine>.config.system.build.nixos-shell
 ```
 
 ## Running different architectures / operating systems i.e. Linux on MacOS
