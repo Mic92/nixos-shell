@@ -89,4 +89,6 @@ nix build config.system.build.vm \
   --out-link "$TEMP_DIR/result" \
   "${extraBuildFlags[@]}"
 
-"$TEMP_DIR/result/bin/run-nixos-vm" "$@"
+# NixOS VMs use the machine name in the executable path. Rather than try to
+# figure it out here, we'll just use a wildcard
+"$TEMP_DIR"/result/bin/run-*-vm "$@"
