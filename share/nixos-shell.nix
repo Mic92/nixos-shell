@@ -8,16 +8,13 @@
 }:
 let
   hasFlake = flakeUri != null;
-
-  defaultTo = default: e: if e == null then default else e;
+  hasFlakeNixpkgs = hasFlake && flake ? inputs.nixpkgs;
 
   flake = builtins.getFlake flakeUri;
 
-  getFlakeOutput = path: flake.inputs.nixpkgs.lib.attrByPath path null flake.outputs;
-
   nixosShellModules = [
     ({lib, ...}: lib.optionalAttrs (guestSystem != hostSystem) {
-      virtualisation.host.pkgs = if hasFlake then
+      virtualisation.host.pkgs = if hasFlakeNixpkgs then
         flake.inputs.nixpkgs.legacyPackages.${hostSystem}
       else
         import nixpkgs { system = hostSystem; };
@@ -26,7 +23,7 @@ let
     ./modules/nixos-shell-config.nix
   ];
 
-  nixpkgsPath = if hasFlake then
+  nixpkgsPath = if hasFlakeNixpkgs then
     flake.inputs.nixpkgs
   else
     nixpkgs;
@@ -36,11 +33,12 @@ let
     modules = [ config ] ++ nixosShellModules;
   };
 
-  flakeSystem = defaultTo
-    (getFlakeOutput [ "nixosConfigurations" flakeAttr ])
-    (getFlakeOutput [ "packages" guestSystem "nixosConfigurations" flakeAttr ]);
+  flakeSystem =
+    flake.outputs.packages.${guestSystem}.nixosConfigurations.${flakeAttr} or
+    flake.outputs.nixosConfigurations.${flakeAttr} or
+    null;
 
-  flakeModule = getFlakeOutput [ "nixosModules" "${flakeAttr}" ];
+  flakeModule = flake.outputs.nixosModules.${flakeAttr} or null;
 
 in
 if flakeUri != null then
