@@ -6,6 +6,7 @@ script_dir="$(dirname "$(readlink -f "$0")")"
 flake_uri=
 flake_attr=
 build_only=
+out_link=
 
 usage() {
   echo "USAGE: $0 [--builders builders] [--flake uri] [--fallback] [-I path]
@@ -13,6 +14,7 @@ usage() {
 [--no-net] [--option name value] [--repair]
 [--refresh] [--show-trace] [--verbose | -v | -vv | -vvv | -vvvv | -vvvvv]
 [--build-only] [--] [nixos-config]
+[--out-link link]
 
 vm.nix" 1>&2
 }
@@ -59,6 +61,10 @@ while [[ $# -gt 0 ]]; do
   --build-only)
     build_only=1
     ;;
+  --out-link)
+    out_link="$1";
+    shift 1
+    ;;
   *)
     if [[ -n "$nixos_config" ]]; then
       usage
@@ -86,13 +92,17 @@ else
   )
 fi
 
-TEMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TEMP_DIR"' EXIT
+if [[ -n "$out_link" ]]; then
+  extraBuildFlags+=(--out-link "$out_link")
+else
+  TEMP_DIR=$(mktemp -d)
+  trap 'rm -rf "$TEMP_DIR"' EXIT
+  extraBuildFlags+=(--out-link "$TEMP_DIR/result")
+fi
 
 nix build config.system.build.vm \
   --file "${script_dir}/../share/nixos-shell.nix" \
   --keep-going \
-  --out-link "$TEMP_DIR/result" \
   "${extraBuildFlags[@]}"
 
 # NixOS VMs use the machine name in the executable path. Rather than try to
