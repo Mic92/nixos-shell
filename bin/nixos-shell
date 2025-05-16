@@ -5,12 +5,15 @@ set -euo pipefail
 script_dir="$(dirname "$(readlink -f "$0")")"
 flake_uri=
 flake_attr=
+build_only=
 
 usage() {
   echo "USAGE: $0 [--builders builders] [--flake uri] [--fallback] [-I path]
 [--impure] [--keep-going | -k] [--keep-failed | -K]
 [--no-net] [--option name value] [--repair]
 [--refresh] [--show-trace] [--verbose | -v | -vv | -vvv | -vvvv | -vvvvv]
+[--build-only] [--] [nixos-config]
+
 vm.nix" 1>&2
 }
 
@@ -53,6 +56,9 @@ while [[ $# -gt 0 ]]; do
     k="$1"; shift 1
     extraBuildFlags+=("$i" "$j" "$k")
     ;;
+  --build-only)
+    build_only=1
+    ;;
   *)
     if [[ -n "$nixos_config" ]]; then
       usage
@@ -91,4 +97,10 @@ nix build config.system.build.vm \
 
 # NixOS VMs use the machine name in the executable path. Rather than try to
 # figure it out here, we'll just use a wildcard
-"$TEMP_DIR"/result/bin/run-*-vm "$@"
+runScript=$(echo "$TEMP_DIR"/result/bin/run-*-vm)
+
+if [[ -n "$build_only" ]]; then
+  realpath "$runScript"
+else
+  "$runScript"
+fi
