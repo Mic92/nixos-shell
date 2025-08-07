@@ -15,8 +15,11 @@ stdenv.mkDerivation {
   preConfigure = ''
     export PREFIX=$out
   '';
-  postInstall = ''
-    wrapProgram $out/bin/nixos-shell \
-      --prefix PATH : ${lib.makeBinPath [ jq coreutils gawk ]}
-  '';
+  postInstall = resholve.phraseSolution "nixos-shell" {
+    scripts = [ "bin/nixos-shell" ];
+    interpreter = lib.getExe bash;
+    inputs = [ coreutils gawk jq ];
+    fake.external = [ "nix" ];
+    keep."$runScript" = true;
+  };
 }
