@@ -4,6 +4,7 @@ let
   cfg = config.nixos-shell;
   home = builtins.getEnv "HOME";
   mkVMDefault = lib.mkOverride 900;
+  foreignVM = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform != pkgs.stdenv.hostPlatform;
 in {
   config =
     let
@@ -95,7 +96,7 @@ in {
             cfg.mounts.extraMounts);
 
         # avoid leaking incompatible host binaries into the VM
-        system.activationScripts.shadow-nix-profile = lib.mkIf (options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform != pkgs.stdenv.hostPlatform) (lib.stringAfter [ "specialfs" "users" "groups" ] ''
+        system.activationScripts.shadow-nix-profile = lib.mkIf foreignVM (lib.stringAfter [ "specialfs" "users" "groups" ] ''
           mkdir -p ${lib.escapeShellArg home}/.nix-profile/
           mount --bind ${config.system.path} ${lib.escapeShellArg home}/.nix-profile/
         '');
@@ -117,7 +118,7 @@ in {
 
               ${lib.optionalString (pwd != "") "cd '${pwd}' 2>/dev/null"}
               ${lib.optionalString (term != "") "export TERM='${term}'"}
-              ${lib.optionalString (path != "") "export PATH=\"${path}:$PATH\""}
+              ${lib.optionalString (cfg.inheritPath && path != "") "export PATH=\"${path}:$PATH\""}
             '';
         };
 

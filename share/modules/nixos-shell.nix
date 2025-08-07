@@ -6,6 +6,12 @@
   ];
   
   options.nixos-shell = with lib; {
+    inheritPath = mkOption {
+      type = types.bool;
+      default = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform == pkgs.stdenv.hostPlatform;
+      description = "Whether to inherit the user's PATH.";
+    };
+
     mounts = let
       cache = mkOption {
         type = types.enum ["none" "loose" "fscache" "mmap"];
