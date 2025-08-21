@@ -22,7 +22,7 @@
       mountNixProfile = mkOption {
         type = types.bool;
         # if our host os does not match the guest os, binaries in our nix profile will not work
-        default = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform != pkgs.stdenv.hostPlatform;
+        default = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform == pkgs.stdenv.hostPlatform;
         description = "Whether to mount the user's nix profile.";
       };
 
