@@ -1,5 +1,7 @@
 # nixos-shell
 
+![nixos-shell logo](./assets/nixos-shell.svg)
+
 * Spawns a headless qemu virtual machines based on a `vm.nix` nixos module in the current working directory.
 * Mounts `$HOME` and the user's nix profile into the virtual machine
 * Provides console access in the same terminal window
