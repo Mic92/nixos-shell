@@ -18,11 +18,17 @@
         mapAttrs
         ;
 
-      vms = mapAttrs' (file: _: {
-        name = removeSuffix ".nix" file;
-        value = import (./examples + "/${file}");
-      }) (builtins.readDir ./examples);
-
+      vms =
+        mapAttrs'
+          (file: type: {
+            name = removeSuffix ".nix" file;
+            value = import (./examples + "/${file}");
+          })
+          (
+            lib.filterAttrs (file: type: type == "regular" && lib.hasSuffix ".nix" file) (
+              builtins.readDir ./examples
+            )
+          );
       mkSystem =
         system: config:
         makeOverridable nixosSystem {
@@ -42,24 +48,25 @@
       nixosConfigurations =
         let
           # Generate configs for all supported systems
-          configsForSystem = system: 
-            mapAttrs (name: config: mkSystem system config) vms;
-          
+          configsForSystem = system: mapAttrs (name: config: mkSystem system config) vms;
+
           # Create configs with system suffix
-          allConfigs = lib.foldl' (acc: system:
+          allConfigs = lib.foldl' (
+            acc: system:
             let
               systemConfigs = configsForSystem system;
-              renamedConfigs = mapAttrs (name: config: 
-                lib.nameValuePair "${name}-${system}" config
+              renamedConfigs = mapAttrs (
+                name: config: lib.nameValuePair "${name}-${system}" config
               ) systemConfigs;
             in
             acc // (lib.mapAttrs' (name: value: value) renamedConfigs)
-          ) {} supportedSystems;
-          
+          ) { } supportedSystems;
+
           # Get x86_64-linux configs for the broken test config
           x86Configs = configsForSystem "x86_64-linux";
         in
-        allConfigs // {
+        allConfigs
+        // {
           # Used for testing that nixos-shell exits nonzero when provided a
           # non-extensible config
           BROKEN-DO-NOT-USE-UNLESS-YOU-KNOW-WHAT-YOU-ARE-DOING = removeAttrs x86Configs.vm [
@@ -86,16 +93,18 @@
           checks =
             let
               # Check all nixosConfigurations that can build on this system
-              nixosChecks = lib.mapAttrs' (n: config: lib.nameValuePair "nixos-${n}" config.config.system.build.toplevel) (
-                lib.filterAttrs (
-                  name: config:
-                  # Only include configs that match current system based on name suffix
-                  lib.hasSuffix "-${system}" name
-                ) inp.self.nixosConfigurations
-              );
+              nixosChecks =
+                lib.mapAttrs' (name: config: lib.nameValuePair "nixos-${name}" config.config.system.build.toplevel)
+                  (
+                    lib.filterAttrs (
+                      name: config:
+                      # Only include configs that match current system based on name suffix
+                      lib.hasSuffix "-${system}" name
+                    ) inp.self.nixosConfigurations
+                  );
 
               # Check packages
-              packageChecks = lib.mapAttrs' (n: lib.nameValuePair "package-${n}") packages;
+              packageChecks = lib.mapAttrs' (name: package: lib.nameValuePair "package-${name}" package) packages;
             in
             nixosChecks // packageChecks;
         in
