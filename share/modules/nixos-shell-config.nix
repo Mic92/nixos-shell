@@ -123,6 +123,13 @@ in {
         };
 
         networking.firewall.enable = mkVMDefault false;
+
+        # Nix operations fail on flakes in Git repositories located on the host filesystem due to
+        # differing UIDs. Adjusting Git settings allows Nix to work with these host repositories.
+        programs.git.config.safe.directory = mkVMDefault "*";
+        environment.etc.gitconfig = lib.mkIf (!config.programs.git.enable) {
+          text = lib.concatMapStringsSep "\n" lib.generators.toGitINI config.programs.git.config;
+        };
       }
     ]);
 }
