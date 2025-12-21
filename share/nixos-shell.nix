@@ -1,5 +1,5 @@
 { nixpkgs ? <nixpkgs>
-, guestSystem ? builtins.currentSystem
+, guestSystem ? builtins.replaceStrings ["darwin"] ["linux"] builtins.currentSystem
 , hostSystem ? builtins.currentSystem
 , configuration ? <nixos-config>
 , flakeStr ? null # flake as named on the command line
