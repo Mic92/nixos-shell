@@ -1,5 +1,8 @@
 { lib, pkgs, modulesPath, config, options, extendModules, ... }:
 
+let
+  isDarwin = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform.isDarwin;
+in
 {
   imports = [
     "${toString modulesPath}/virtualisation/qemu-vm.nix"
@@ -64,6 +67,15 @@
         );
         default = {};
       };
+    };
+
+    terminfo.fixFSCaseConflicts = mkOption {
+      type = types.bool;
+      default = isDarwin;
+      description = ''
+        Whether to apply workaround for broken terminfo lookup on hosts with case insensitive file
+        systems.
+      '';
     };
   };
 

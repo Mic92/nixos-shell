@@ -106,6 +106,47 @@ in {
             xterm # for resize command
           ];
 
+          extraSetup = lib.optionalString cfg.terminfo.fixFSCaseConflicts ''
+            nixosShell::symlinkToDir() (
+              # this function runs in a subshell to make shopt local to this function
+              shopt -s nullglob
+
+              local target="$1"
+
+              if ! [[ -L "$target" && -d "$target" ]]; then
+                return
+              fi
+
+              local linkTo="$(readlink "$target")"
+              rm "$target"
+              mkdir "$target"
+
+              local files=( "$linkTo/"{.,}* )
+              if (( ''${#files[@]} > 0 )); then
+                cp -s "''${files[@]}" "$target/"
+              fi
+            )
+
+            nixosShell::fixTerminfoFSCaseConflicts() {
+              nixosShell::symlinkToDir "$out"
+              nixosShell::symlinkToDir "$out/share"
+              nixosShell::symlinkToDir "$out/share/terminfo"
+              pushd "$out/share/terminfo"
+
+              local c
+              for c in {a..z}; do
+                if [[ -d "$c" && -d "''${c@U}" && ! "$c" -ef ''${c@U} ]]; then
+                  nixosShell::symlinkToDir "''${c@U}"
+                  cp "$c/"* "''${c@U}/"
+                fi
+              done
+
+              popd
+            }
+
+            nixosShell::fixTerminfoFSCaseConflicts
+          '';
+
           loginShellInit =
             let
               pwd = builtins.getEnv "PWD";
