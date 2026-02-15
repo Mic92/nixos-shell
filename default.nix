@@ -4,7 +4,7 @@
 
 with pkgs;
 stdenv.mkDerivation {
-  name = "nixos-shell";
+  name = "nixos-shell-${lib.fileContents ./version.txt}";
   src = builtins.filterSource
     (path: type: baseNameOf path != "nixos.qcow2" &&
                  baseNameOf path != ".git" &&
