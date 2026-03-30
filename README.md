@@ -202,6 +202,7 @@ To mount anywhere inside the virtual machine, use the `nixos-shell.mounts.extraM
     "/var/www" = {
       target = ./src;
       cache = "none";
+      readme = true; # default is true
     };
   };
 }
