@@ -24,7 +24,7 @@ in {
       })
 
       (
-        lib.mkIf (home != "" && cfg.mounts.mountHome) {
+        lib.mkIf (home != "" && cfg.mounts.mountHome.enable) {
           users.extraUsers.root.home = lib.mkVMOverride home;
         }
       )
@@ -73,18 +73,18 @@ in {
               "-mon chardev=char0,mode=readline"
               "-device virtconsole,chardev=char0,nr=0"
             ] ++
-            lib.optional cfg.mounts.mountHome "-virtfs local,path=${home},security_model=none,mount_tag=home" ++
-            lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
-            lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}") cfg.mounts.extraMounts;
+            lib.optional cfg.mounts.mountHome.enable "-virtfs local,path=${home},security_model=none,mount_tag=home,readonly=${if (cfg.mounts.mountHome.readonly) then "true" else "false"}" ++
+            lib.optional (cfg.mounts.mountNixProfile.enable && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
+            lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag},readonly=${if (mount.readonly) then "true" else "false"}") cfg.mounts.extraMounts;
         };
 
         # build-vm overrides our filesystem settings in nixos-config
         boot.initrd.postMountCommands =
-          (lib.optionalString cfg.mounts.mountHome ''
+          (lib.optionalString cfg.mounts.mountHome.enable ''
             mkdir -p $targetRoot/${lib.escapeShellArg home}
             mount -t 9p home $targetRoot/${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
           '') +
-          (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
+          (lib.optionalString (user != "" && cfg.mounts.mountNixProfile.enable) ''
             mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
             mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
           '') +
