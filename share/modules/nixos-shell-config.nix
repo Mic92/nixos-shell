@@ -64,7 +64,7 @@ in {
 
           qemu.options =
             let
-              nixProfile = "/nix/var/nix/profiles/per-user/${user}/profile/";
+              nixProfile = "${home}/.local/state/nix/profiles";
             in
             lib.optionals (!config.virtualisation.graphics) [
               "-serial null"
@@ -78,22 +78,29 @@ in {
             lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}${lib.optionalString mount.readOnly ",readonly=on"}") cfg.mounts.extraMounts;
         };
 
-        # build-vm overrides our filesystem settings in nixos-config
-        boot.initrd.postMountCommands =
-          (lib.optionalString cfg.mounts.mountHome ''
-            mkdir -p $targetRoot/${lib.escapeShellArg home}
-            mount -t 9p home $targetRoot/${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}${lib.optionalString cfg.mounts.mountHomeReadOnly ",ro"}
-          '') +
-          (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
-            mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
-            mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
-          '') +
-          builtins.concatStringsSep " " (lib.mapAttrsToList
-            (target: mount: ''
-              mkdir -p $targetRoot/${target}
-              mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}${lib.optionalString mount.readOnly ",ro"}
-            '')
-            cfg.mounts.extraMounts);
+        boot.initrd.systemd.enable = lib.mkDefault true;
+        boot.initrd.systemd.services.nixos-shell-mounts = {
+          description = "build-vm overrides our filesystem settings in nixos-config";
+          wantedBy = [ "initrd.target" ];
+          before = [ "initrd.target" ];
+          after = [ "initrd-fs.target" ];
+          serviceConfig.Type = "oneshot";
+          script =
+            (lib.optionalString cfg.mounts.mountHome ''
+              mkdir -p /sysroot${lib.escapeShellArg home}
+              mount -t 9p home /sysroot${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}${lib.optionalString cfg.mounts.mountHomeReadOnly ",ro"}
+            '') +
+            (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
+              mkdir -p /sysroot${lib.escapeShellArg home}/.local/state/nix/profiles
+              mount -t 9p nixprofile /sysroot${lib.escapeShellArg home}/.local/state/nix/profiles -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
+            '') +
+            builtins.concatStringsSep " " (lib.mapAttrsToList
+              (target: mount: ''
+                mkdir -p /sysroot${target}
+                mount -t 9p ${mount.tag} /sysroot${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}${lib.optionalString mount.readOnly ",ro"}
+              '')
+              cfg.mounts.extraMounts);
+        };
 
         # avoid leaking incompatible host binaries into the VM
         system.activationScripts.shadow-nix-profile = lib.mkIf foreignVM (lib.stringAfter [ "specialfs" "users" "groups" ] ''
