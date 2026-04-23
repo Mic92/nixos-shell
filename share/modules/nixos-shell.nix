@@ -28,6 +28,12 @@ in
         description = "Whether to mount `$HOME`.";
       };
 
+      mountHomeReadOnly = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Mount `$HOME` read-only inside the VM.";
+      };
+
       mountNixProfile = mkOption {
         type = types.bool;
         # if our host os does not match the guest os, binaries in our nix profile will not work
@@ -54,6 +60,11 @@ in
               tag = mkOption {
                 type = types.str;
                 internal = true;
+              };
+              readOnly = mkOption {
+                type = types.bool;
+                default = false;
+                description = "Mount path read-only inside the VM.";
               };
             };
 

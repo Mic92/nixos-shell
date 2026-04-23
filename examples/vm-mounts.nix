@@ -5,6 +5,7 @@
     "/mnt/nixos-shell" = {
       target = ./..;
       cache = "none";
+      readOnly = true;
     };
   };
 }
