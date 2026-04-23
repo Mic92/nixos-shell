@@ -24,7 +24,7 @@ in {
       })
 
       (
-        lib.mkIf (home != "" && cfg.mounts.mountHome.enable) {
+        lib.mkIf (home != "" && cfg.mounts.mountHome) {
           users.extraUsers.root.home = lib.mkVMOverride home;
         }
       )
@@ -73,25 +73,25 @@ in {
               "-mon chardev=char0,mode=readline"
               "-device virtconsole,chardev=char0,nr=0"
             ] ++
-            lib.optional cfg.mounts.mountHome.enable "-virtfs local,path=${home},security_model=none,mount_tag=home,readonly=${if (cfg.mounts.mountHome.readonly) then "true" else "false"}" ++
-            lib.optional (cfg.mounts.mountNixProfile.enable && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
-            lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag},readonly=${if (mount.readonly) then "true" else "false"}") cfg.mounts.extraMounts;
+            lib.optional cfg.mounts.mountHome "-virtfs local,path=${home},security_model=none,mount_tag=home${lib.optionalString cfg.mounts.mountHomeReadOnly ",readonly=on"}" ++
+            lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
+            lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}${lib.optionalString mount.readOnly ",readonly=on"}") cfg.mounts.extraMounts;
         };
 
         # build-vm overrides our filesystem settings in nixos-config
         boot.initrd.postMountCommands =
-          (lib.optionalString cfg.mounts.mountHome.enable ''
+          (lib.optionalString cfg.mounts.mountHome ''
             mkdir -p $targetRoot/${lib.escapeShellArg home}
-            mount -t 9p home $targetRoot/${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
+            mount -t 9p home $targetRoot/${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}${lib.optionalString cfg.mounts.mountHomeReadOnly ",ro"}
           '') +
-          (lib.optionalString (user != "" && cfg.mounts.mountNixProfile.enable) ''
+          (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
             mkdir -p $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/
             mount -t 9p nixprofile $targetRoot/nix/var/nix/profiles/per-user/${user}/profile/ -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
           '') +
           builtins.concatStringsSep " " (lib.mapAttrsToList
             (target: mount: ''
               mkdir -p $targetRoot/${target}
-              mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}
+              mount -t 9p ${mount.tag} $targetRoot/${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}${lib.optionalString mount.readOnly ",ro"}
             '')
             cfg.mounts.extraMounts);
 

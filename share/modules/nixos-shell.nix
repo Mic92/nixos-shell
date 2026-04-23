@@ -19,27 +19,23 @@
         description = "9p caching policy";
       };
     in {
-      mountHome = { 
-        enable = mkOption {
-          type = types.bool;
-          default = builtins.getEnv "HOME" != "";
-          description = "Whether to mount `$HOME`.";
-        };
-        readonly = mkOption {
-            type = types.bool;
-            default = false;
-            description = "Mount `$HOME` as readonly.";
-          };
+      mountHome = mkOption {
+        type = types.bool;
+        default = builtins.getEnv "HOME" != "";
+        description = "Whether to mount `$HOME`.";
       };
 
-      mountNixProfile = {
-        enable = mkOption {
-          type = types.bool;
-          # if our host os does not match the guest os, binaries in our nix profile will not work
-          default = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform == pkgs.stdenv.hostPlatform;
-          description = "Whether to mount the user's nix profile.";
-          # The nix store is by default readonly so no need for an extra option 
-        };
+      mountHomeReadOnly = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Mount `$HOME` read-only inside the VM.";
+      };
+
+      mountNixProfile = mkOption {
+        type = types.bool;
+        # if our host os does not match the guest os, binaries in our nix profile will not work
+        default = options.virtualisation.host.pkgs.isDefined && config.virtualisation.host.pkgs.stdenv.hostPlatform == pkgs.stdenv.hostPlatform;
+        description = "Whether to mount the user's nix profile.";
       };
 
       inherit cache;
@@ -62,11 +58,11 @@
                 type = types.str;
                 internal = true;
               };
-              readonly = mkOption {
-                  type = types.bool;
-                  default = false;
-                  description = "Mount path as readonly.";
-                };
+              readOnly = mkOption {
+                type = types.bool;
+                default = false;
+                description = "Mount path read-only inside the VM.";
+              };
             };
 
             config.tag = lib.mkDefault (
