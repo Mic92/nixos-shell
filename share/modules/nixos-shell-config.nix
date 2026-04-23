@@ -17,6 +17,32 @@ in {
       maybeSetShell = lib.optional (options.programs ? ${shell}.enable && shell != "bash") {
         programs.${shell}.enable = mkVMDefault true;
       };
+
+      # Newer single-user/XDG installs keep profiles under ~/.local/state, older
+      # multi-user installs use /nix/var/nix/profiles/per-user. Pick whichever
+      # exists on the host so the guest sees the same profile.
+      nixProfileCandidates = [
+        "${home}/.local/state/nix/profiles"
+        "/nix/var/nix/profiles/per-user/${user}/profile"
+      ];
+      nixProfile = lib.findFirst builtins.pathExists null nixProfileCandidates;
+      exportNixProfile = cfg.mounts.mountNixProfile && nixProfile != null;
+
+      mountScript = targetRoot:
+        (lib.optionalString cfg.mounts.mountHome ''
+          mkdir -p ${targetRoot}${lib.escapeShellArg home}
+          mount -t 9p home ${targetRoot}${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}${lib.optionalString cfg.mounts.mountHomeReadOnly ",ro"}
+        '') +
+        (lib.optionalString exportNixProfile ''
+          mkdir -p ${targetRoot}${lib.escapeShellArg nixProfile}
+          mount -t 9p nixprofile ${targetRoot}${lib.escapeShellArg nixProfile} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
+        '') +
+        lib.concatStrings (lib.mapAttrsToList
+          (target: mount: ''
+            mkdir -p ${targetRoot}${lib.escapeShellArg target}
+            mount -t 9p ${mount.tag} ${targetRoot}${lib.escapeShellArg target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}${lib.optionalString mount.readOnly ",ro"}
+          '')
+          cfg.mounts.extraMounts);
     in
     lib.mkMerge (maybeSetShell ++ [
       (lib.mkIf (pkgs ? ${shell}) {
@@ -63,9 +89,6 @@ in {
           qemu.consoles = lib.mkIf (!config.virtualisation.graphics) [ "tty0" "hvc0" ];
 
           qemu.options =
-            let
-              nixProfile = "${home}/.local/state/nix/profiles";
-            in
             lib.optionals (!config.virtualisation.graphics) [
               "-serial null"
               "-device virtio-serial"
@@ -74,32 +97,23 @@ in {
               "-device virtconsole,chardev=char0,nr=0"
             ] ++
             lib.optional cfg.mounts.mountHome "-virtfs local,path=${home},security_model=none,mount_tag=home${lib.optionalString cfg.mounts.mountHomeReadOnly ",readonly=on"}" ++
-            lib.optional (cfg.mounts.mountNixProfile && builtins.pathExists nixProfile) "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
+            lib.optional exportNixProfile "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
             lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}${lib.optionalString mount.readOnly ",readonly=on"}") cfg.mounts.extraMounts;
         };
 
-        boot.initrd.systemd.enable = lib.mkDefault true;
-        boot.initrd.systemd.services.nixos-shell-mounts = {
-          description = "build-vm overrides our filesystem settings in nixos-config";
+        # build-vm overrides our filesystem settings in nixos-config, so we
+        # mount the 9p shares ourselves from the initrd. Support both the
+        # scripted and the systemd-based initrd.
+        boot.initrd.postMountCommands = lib.mkIf (!config.boot.initrd.systemd.enable) (mountScript "$targetRoot");
+
+        boot.initrd.systemd.services.nixos-shell-mounts = lib.mkIf config.boot.initrd.systemd.enable {
+          description = "Mount nixos-shell 9p shares";
           wantedBy = [ "initrd.target" ];
           before = [ "initrd.target" ];
           after = [ "initrd-fs.target" ];
+          unitConfig.DefaultDependencies = false;
           serviceConfig.Type = "oneshot";
-          script =
-            (lib.optionalString cfg.mounts.mountHome ''
-              mkdir -p /sysroot${lib.escapeShellArg home}
-              mount -t 9p home /sysroot${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}${lib.optionalString cfg.mounts.mountHomeReadOnly ",ro"}
-            '') +
-            (lib.optionalString (user != "" && cfg.mounts.mountNixProfile) ''
-              mkdir -p /sysroot${lib.escapeShellArg home}/.local/state/nix/profiles
-              mount -t 9p nixprofile /sysroot${lib.escapeShellArg home}/.local/state/nix/profiles -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
-            '') +
-            builtins.concatStringsSep " " (lib.mapAttrsToList
-              (target: mount: ''
-                mkdir -p /sysroot${target}
-                mount -t 9p ${mount.tag} /sysroot${target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}${lib.optionalString mount.readOnly ",ro"}
-              '')
-              cfg.mounts.extraMounts);
+          script = mountScript "/sysroot";
         };
 
         # avoid leaking incompatible host binaries into the VM
