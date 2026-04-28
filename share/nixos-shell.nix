@@ -5,6 +5,7 @@
 , flakeStr ? null # flake as named on the command line
 , flakeUri ? null
 , flakeAttr ? null
+, extraModules ? [ ]
 }:
 let
   hasFlake = flakeUri != null;
@@ -21,7 +22,7 @@ let
     })
     ./modules/nixos-shell.nix
     ./modules/nixos-shell-config.nix
-  ];
+  ] ++ extraModules;
 
   nixpkgsPath = if hasFlakeNixpkgs then
     flake.inputs.nixpkgs
