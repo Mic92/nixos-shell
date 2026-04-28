@@ -69,6 +69,23 @@ If an attribute _name_ is given, `nixos-shell` tries the following flake output 
 - `nixosConfigurations.<name>`
 - `nixosModules.<name>`
 
+You can extend a VM definition by passing the `--extra-module` flag to layer a local module on top of a flake-defined base configuration:
+
+```console
+$ nixos-shell --flake github:Mic92/nixos-shell#vm --extra-module ./project.nix
+```
+
+You can pass `--extra-module` multiple times to include several modules:
+
+```console
+$ nixos-shell --flake github:Mic92/nixos-shell#vm --extra-module ./project.nix --extra-module ./private.nix
+```
+
+The flag works equally well without `--flake`, letting you extend a plain `vm.nix` with additional modules:
+
+```console
+$ nixos-shell vm.nix --extra-module ./private.nix
+```
 
 ## Terminating the virtual machine
 
