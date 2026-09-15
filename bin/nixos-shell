@@ -100,7 +100,7 @@ else
   extraBuildFlags+=(--out-link "$TEMP_DIR/result")
 fi
 
-nix build config.system.build.vm \
+nix build config.system.build.nixos-shell \
   --file "${script_dir}/../share/nixos-shell.nix" \
   --keep-going \
   "${extraBuildFlags[@]}"

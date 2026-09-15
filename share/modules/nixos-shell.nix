@@ -7,7 +7,7 @@ in
   imports = [
     "${toString modulesPath}/virtualisation/qemu-vm.nix"
   ];
-  
+
   options.nixos-shell = with lib; {
     inheritPath = mkOption {
       type = types.bool;
@@ -15,13 +15,7 @@ in
       description = "Whether to inherit the user's PATH.";
     };
 
-    mounts = let
-      cache = mkOption {
-        type = types.enum ["none" "loose" "fscache" "mmap"];
-        default = "loose"; # bad idea? Well, at least it is fast!1!!
-        description = "9p caching policy";
-      };
-    in {
+    mounts = {
       mountHome = mkOption {
         type = types.bool;
         default = builtins.getEnv "HOME" != "";
@@ -41,7 +35,21 @@ in
         description = "Whether to mount the user's nix profile.";
       };
 
-      inherit cache;
+      cache = mkOption {
+        type = types.enum ["never" "auto" "always"];
+        default = "auto";
+        description = ''
+          virtiofs cache mode used by virtiofsd for the shared directories.
+
+          - `never`: no caching in the guest. Host changes are always visible
+            immediately in the guest, at the cost of performance.
+          - `auto`: metadata and data are cached in the guest but revalidated
+            after a timeout, so host changes propagate to the guest with a
+            small delay. This is the default and a good tradeoff.
+          - `always`: the guest caches indefinitely. This is the fastest option
+            but host changes are *not* propagated to the guest.
+        '';
+      };
 
       extraMounts = mkOption {
         type = types.attrsOf (types.coercedTo
@@ -54,8 +62,6 @@ in
                 type = types.path;
                 description = lib.mdDoc "Target on the guest.";
               };
-
-              inherit cache;
 
               tag = mkOption {
                 type = types.str;
@@ -96,7 +102,25 @@ in
         ./nixos-shell-config.nix
       ];
     };
-  in {
-    system.build.nixos-shell = vmSystem.config.system.build.vm;
+    inherit (vmSystem) config;
+    hostPkgs = config.virtualisation.host.pkgs;
+    cacheMode = config.nixos-shell.mounts.cache;
+    vm = config.system.build.vm;
+    in {
+      system.build.nixos-shell =
+        hostPkgs.runCommand
+          vm.name
+          {
+            inherit (vm) meta;
+            preferLocalBuild = true;
+          }
+          ''
+            mkdir -p "$out/bin"
+            ln -s '${config.system.build.toplevel}' "$out/system"
+            runner=$(readlink -f '${vm}/bin/run-${config.system.name}-vm')
+            substitute "$runner" "$out/bin/run-${config.system.name}-vm" \
+              --replace-fail '--cache=always' '--cache=${cacheMode}'
+            chmod +x "$out/bin/run-${config.system.name}-vm"
+          '';
   };
 }

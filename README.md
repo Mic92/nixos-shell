@@ -201,7 +201,6 @@ To mount anywhere inside the virtual machine, use the `nixos-shell.mounts.extraM
     # override options for each mount
     "/var/www" = {
       target = ./src;
-      cache = "none";
       readOnly = true; # default is false
     };
   };
@@ -215,12 +214,16 @@ You can further configure the default mount settings:
   nixos-shell.mounts = {
     mountHome = false;
     mountNixProfile = false;
-    cache = "none"; # default is "loose"
+    cache = "never"; # default is "auto"
   };
 }
 ```
 
-Available cache modes are documented in the [9p kernel module].
+Shared directories are exported to the guest via [virtiofs].
+The `cache` option controls virtiofsd's caching behaviour and thus how host changes propagate into the guest:
+- `never`: no guest-side caching. Host changes are always immediately visible in the guest, at the cost of performance.
+- `auto` (default): cached but revalidated after a short timeout, so host changes propagate to the guest with a small delay.
+- `always`: the guest caches indefinitely (fastest), but host changes are *not* propagated to the guest.
 
 ## Disable KVM
 
@@ -304,4 +307,4 @@ $ nixos-shell --guest-system aarch64-linux examples/vm.nix
 Have a look at the [virtualisation] options NixOS provides.
 
 [virtualisation]: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/qemu-vm.nix
-[9p kernel module]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/Documentation/filesystems/9p.rst
+[virtiofs]: https://virtio-fs.gitlab.io/

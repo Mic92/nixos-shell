@@ -27,22 +27,6 @@ in {
       ];
       nixProfile = lib.findFirst builtins.pathExists null nixProfileCandidates;
       exportNixProfile = cfg.mounts.mountNixProfile && nixProfile != null;
-
-      mountScript = targetRoot:
-        (lib.optionalString cfg.mounts.mountHome ''
-          mkdir -p ${targetRoot}${lib.escapeShellArg home}
-          mount -t 9p home ${targetRoot}${lib.escapeShellArg home} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}${lib.optionalString cfg.mounts.mountHomeReadOnly ",ro"}
-        '') +
-        (lib.optionalString exportNixProfile ''
-          mkdir -p ${targetRoot}${lib.escapeShellArg nixProfile}
-          mount -t 9p nixprofile ${targetRoot}${lib.escapeShellArg nixProfile} -o trans=virtio,version=9p2000.L,cache=${cfg.mounts.cache},msize=${toString config.virtualisation.msize}
-        '') +
-        lib.concatStrings (lib.mapAttrsToList
-          (target: mount: ''
-            mkdir -p ${targetRoot}${lib.escapeShellArg target}
-            mount -t 9p ${mount.tag} ${targetRoot}${lib.escapeShellArg target} -o trans=virtio,version=9p2000.L,cache=${mount.cache},msize=${toString config.virtualisation.msize}${lib.optionalString mount.readOnly ",ro"}
-          '')
-          cfg.mounts.extraMounts);
     in
     lib.mkMerge (maybeSetShell ++ [
       (lib.mkIf (pkgs ? ${shell}) {
@@ -70,11 +54,6 @@ in {
         # Allow the user to login as root without password.
         users.extraUsers.root.initialHashedPassword = "";
 
-        # see https://wiki.qemu.org/Documentation/9psetup#Performance_Considerations
-        # == 100M
-        # FIXME? currently 500K seems to be the limit?
-        virtualisation.msize = mkVMDefault 104857600;
-
         services.getty.helpLine = ''
           If you are connect via serial console:
           Type Ctrl-a c to switch to the qemu console
@@ -86,6 +65,10 @@ in {
           graphics = mkVMDefault false;
           memorySize = mkVMDefault 700;
 
+          # virtiofsd shares the guest's memory, thus it requires the memory to
+          # be backed by shared memory.
+          qemu.enableSharedMemory = mkVMDefault true;
+
           qemu.consoles = lib.mkIf (!config.virtualisation.graphics) [ "tty0" "hvc0" ];
 
           qemu.options =
@@ -95,25 +78,31 @@ in {
               "-chardev stdio,mux=on,id=char0,signal=off"
               "-mon chardev=char0,mode=readline"
               "-device virtconsole,chardev=char0,nr=0"
-            ] ++
-            lib.optional cfg.mounts.mountHome "-virtfs local,path=${home},security_model=none,mount_tag=home${lib.optionalString cfg.mounts.mountHomeReadOnly ",readonly=on"}" ++
-            lib.optional exportNixProfile "-virtfs local,path=${nixProfile},security_model=none,mount_tag=nixprofile" ++
-            lib.mapAttrsToList (target: mount: "-virtfs local,path=${builtins.toString mount.target},security_model=none,mount_tag=${mount.tag}${lib.optionalString mount.readOnly ",readonly=on"}") cfg.mounts.extraMounts;
-        };
+            ];
 
-        # build-vm overrides our filesystem settings in nixos-config, so we
-        # mount the 9p shares ourselves from the initrd. Support both the
-        # scripted and the systemd-based initrd.
-        boot.initrd.postMountCommands = lib.mkIf (!config.boot.initrd.systemd.enable) (mountScript "$targetRoot");
-
-        boot.initrd.systemd.services.nixos-shell-mounts = lib.mkIf config.boot.initrd.systemd.enable {
-          description = "Mount nixos-shell 9p shares";
-          wantedBy = [ "initrd.target" ];
-          before = [ "initrd.target" ];
-          after = [ "initrd-fs.target" ];
-          unitConfig.DefaultDependencies = false;
-          serviceConfig.Type = "oneshot";
-          script = mountScript "/sysroot";
+          # Share the host directories with the guest via virtiofs.
+          # The qemu-vm module turns these into `virtualisation.fileSystems`
+          # entries (fsType = "virtiofs", neededForBoot = true).
+          sharedDirectories =
+            (lib.optionalAttrs cfg.mounts.mountHome {
+              home = {
+                source = home;
+                target = home;
+                writable = !cfg.mounts.mountHomeReadOnly;
+              };
+            }) //
+            (lib.optionalAttrs exportNixProfile {
+              nixprofile = {
+                source = nixProfile;
+                target = nixProfile;
+                writable = true;
+              };
+            }) //
+            (lib.mapAttrs' (name: mount: lib.nameValuePair mount.tag {
+              source = builtins.toString mount.target;
+              target = name;
+              writable = !mount.readOnly;
+            }) cfg.mounts.extraMounts);
         };
 
         # avoid leaking incompatible host binaries into the VM

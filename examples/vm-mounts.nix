@@ -1,11 +1,13 @@
 {
-  nixos-shell.mounts.extraMounts = {
-    "/mnt/examples" = ./.;
+  nixos-shell.mounts = {
+    cache = "never";
+    extraMounts = {
+      "/mnt/examples" = ./.;
 
-    "/mnt/nixos-shell" = {
-      target = ./..;
-      cache = "none";
-      readOnly = true;
+      "/mnt/nixos-shell" = {
+        target = ./..;
+        readOnly = true;
+      };
     };
   };
 }
