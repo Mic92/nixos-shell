@@ -13,13 +13,14 @@ usage() {
 [--impure] [--keep-going | -k] [--keep-failed | -K]
 [--no-net] [--option name value] [--repair]
 [--refresh] [--show-trace] [--verbose | -v | -vv | -vvv | -vvvv | -vvvvv]
-[--build-only] [--] [nixos-config]
+[--build-only] [--extra-module path] [--] [nixos-config]
 [--out-link link]
 
 vm.nix" 1>&2
 }
 
 nixos_config=
+extra_modules=()
 while [[ $# -gt 0 ]]; do
   i="$1"; shift 1
   case "$i" in
@@ -65,6 +66,10 @@ while [[ $# -gt 0 ]]; do
     out_link="$1";
     shift 1
     ;;
+  --extra-module)
+    j="$1"; shift 1
+    extra_modules+=("$(realpath "$j")")
+    ;;
   *)
     if [[ -n "$nixos_config" ]]; then
       usage
@@ -78,10 +83,17 @@ nixos_config=${nixos_config:-vm.nix}
 
 unset NIXOS_CONFIG
 
+extra_modules_list="["
+for module in "${extra_modules[@]}"; do
+  extra_modules_list+=" \"$module\""
+done
+extra_modules_list+=" ]"
+
 if [[ -z "$flake_uri" ]]; then
   extraBuildFlags+=(
     --extra-experimental-features "nix-command"
     -I "nixos-config=$nixos_config"
+    --arg extraModules "$extra_modules_list"
   )
 else
   extraBuildFlags+=(
@@ -89,6 +101,7 @@ else
     --argstr flakeStr "$flake"
     --argstr flakeUri "$flake_uri"
     --argstr flakeAttr "${flake_attr:-"vm"}"
+    --arg extraModules "$extra_modules_list"
   )
 fi
 
