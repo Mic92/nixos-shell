@@ -104,7 +104,6 @@ in
     };
     inherit (vmSystem) config;
     hostPkgs = config.virtualisation.host.pkgs;
-    cacheMode = config.nixos-shell.mounts.cache;
     vm = config.system.build.vm;
     in {
       system.build.nixos-shell =
@@ -118,8 +117,7 @@ in
             mkdir -p "$out/bin"
             ln -s '${config.system.build.toplevel}' "$out/system"
             runner=$(readlink -f '${vm}/bin/run-${config.system.name}-vm')
-            substitute "$runner" "$out/bin/run-${config.system.name}-vm" \
-              --replace-fail '--cache=always' '--cache=${cacheMode}'
+            cp "$runner" "$out/bin/run-${config.system.name}-vm"
             chmod +x "$out/bin/run-${config.system.name}-vm"
           '';
   };
