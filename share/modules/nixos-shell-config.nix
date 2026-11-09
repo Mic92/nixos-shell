@@ -89,6 +89,7 @@ in {
                 source = home;
                 target = home;
                 writable = !cfg.mounts.mountHomeReadOnly;
+                inherit (cfg.mounts) cache;
               };
             }) //
             (lib.optionalAttrs exportNixProfile {
@@ -96,12 +97,14 @@ in {
                 source = nixProfile;
                 target = nixProfile;
                 writable = true;
+                inherit (cfg.mounts) cache;
               };
             }) //
             (lib.mapAttrs' (name: mount: lib.nameValuePair mount.tag {
               source = builtins.toString mount.target;
               target = name;
               writable = !mount.readOnly;
+              inherit (cfg.mounts) cache;
             }) cfg.mounts.extraMounts);
         };
 
